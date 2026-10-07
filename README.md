@@ -36,5 +36,6 @@ The setup script installs uv, creates `.venv` with Python 3.11, installs the exa
 
 ## Where the work runs
 
-- **Laptop 1** (development): code, tests, small runs on synthetic data.
-- **Laptop 2** (RTX 4050): real dataset and long training runs. See `docs/laptop2_steps.md`.
+Everything runs on one Windows laptop with an NVIDIA RTX 3050 (4 GB): coding, the dataset,
+training and all experiments. Privacy-noise (DP-SGD) training must use the GPU
+(`scripts\check_gpu_dp.py` measures the speed).

@@ -22,14 +22,16 @@
 ## What went wrong / surprises
 - `torch 2.14.1` has **no cu128 build**; the setup script now uses **cu126** (works with drivers >= 527). cu130/cu132 would need drivers >= 580.
 - Flower 1.39 changed its CLI: `flwr new` pulls templates online, the Control API moved to **HTTP port 8000**, and SuperLink/SuperNode need `.venv\Scripts` on PATH. All fixed in `flower_check.ps1`; details in `docs/flower_windows.md`.
-- The project path contains spaces (`D:\Hokage X Pirate king\...`). Everything worked anyway (no Ray in our stack), but laptop 2 should still use a path without spaces.
+- The project path contains spaces (`D:\Hokage X Pirate king\...`). Everything worked anyway (no Ray in our stack). Anyone cloning the repo elsewhere should still use a path without spaces.
 
 ## Decisions taken
 - Python environment tool: **uv** (same on Windows and Linux).
 - Flower is used in deployment mode only (no Ray). Experiments will run in our own engine (Phase 4).
+- **One laptop only** (this one, RTX 3050 4 GB) for coding, data and training. The second laptop is not used.
+- GitHub repo: https://github.com/mayanksharma7804/FedGuard01 (branch `main`).
 
-## Still to do for Phase 1 (team / laptop 2)
-- [ ] Create the private GitHub repo and push (see the message from Claude).
-- [ ] Laptop 2: follow `docs/laptop2_steps.md` (setup, Flower check, speed test, dataset in place).
+## Still to do for Phase 1 (team)
+- [x] Create the GitHub repo and push.
+- [ ] Download NF-UNSW-NB15-v2 into `data\raw\` and record its SHA-256 in `data/README.md` (start of Phase 2).
 - [ ] Every member: learning tasks in plan section 6.1 (PyTorch basics, Flower, Opacus tutorials).
 - [ ] Discuss decisions D1-D7 (plan section 3) with the project guide.

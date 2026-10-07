@@ -21,11 +21,10 @@ displacement that noise + non-IID heterogeneity cannot explain (noise-aware Auto
 - DataLoader num_workers=0 on Windows. Guard scripts with if __name__ == "__main__":.
 - Never commit data/raw, data/processed, results/runs, *.pt.
 
-## Two laptops
-- Laptop 1 (this one, has Claude Code, RTX 3050 4 GB): all coding, tests, small runs on synthetic data.
-- Laptop 2 (RTX 4050 6 GB, NO Claude Code): holds the real dataset, runs long training. The user runs
-  the exact commands written in docs/laptop2_steps.md and brings the outputs back. Keep that file
-  updated with copy-paste commands for every phase.
+## Machine
+Everything (coding, dataset, training, experiments) runs on ONE Windows laptop: RTX 3050 4 GB,
+16 GB RAM, driver 566.07. Repo: https://github.com/mayanksharma7804/FedGuard01 (branch main).
+Measured: ~15 min per 40-round DP run on the GPU (DP on CPU is ~5x slower - always use the GPU).
 
 ## Pinned versions (requirements.txt, made with uv pip compile --universal)
 Python 3.11.17, torch 2.14.1 (CUDA build from the cu126 index - there is no cu128 build), opacus 1.6.0,
@@ -47,4 +46,4 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 1 - setup & foundations (laptop 1 done; laptop 2 pending).
+Update this line at the start of every phase: Phase 1 - setup & foundations (environment + Flower check done; dataset download pending).

@@ -1,6 +1,6 @@
 """Phase 1 check: CNN-LSTM (with Opacus DPLSTM) trains with and without DP-SGD on CPU and GPU.
 
-Prints seconds per training step for each case. Run on BOTH laptops:
+Prints seconds per training step for each case:
     python scripts/check_gpu_dp.py
 The numbers feed the Phase 8 compute budget (runs x time per run).
 """
