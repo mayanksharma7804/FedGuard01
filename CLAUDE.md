@@ -46,4 +46,10 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 1 - setup & foundations (environment + Flower check done; dataset download pending).
+Update this line at the start of every phase: Phase 2 - data pipeline DONE (see docs/phase_notes/P2_data.md). Next: Phase 3 (CNN-LSTM, B0).
+
+## Data facts (Phase 2)
+- `python scripts/prepare_data.py` -> data/processed/nf_unsw.npz (+ _manifest.json); `python scripts/make_partitions.py` -> partitions/nf_unsw_alpha{a}_k{K}_seed{s}.npz.
+- Load with `fedguard.data.load_processed("nf_unsw")` and `fedguard.partition.load_partition(path, fingerprint=data.fingerprint)`.
+- 104,022 unique rows, 38 features, 10 classes (Benign = 0). Train 45,225 (cap 20k/class), val 8,322, test 20,805.
+- Dropped identifiers: IPs, ports, DNS_QUERY_ID. log1p as float32 BEFORE de-duplication (prevents float collisions across splits).
