@@ -1,0 +1,16 @@
+# data and big outputs never go to GitHub
+data/raw/
+data/processed/
+results/runs/
+logs/
+*.pt
+*.npz
+!partitions/*.npz
+
+# environments and caches
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+.env
+*.egg-info/

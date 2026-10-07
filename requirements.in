@@ -1,0 +1,16 @@
+# Top-level packages. Make the exact, cross-platform lock file with:
+#   uv pip compile requirements.in --universal -o requirements.txt
+# then commit BOTH files. Everyone installs from requirements.txt.
+torch
+opacus
+flwr
+numpy
+pandas
+pyarrow
+scikit-learn
+matplotlib
+seaborn
+pyyaml
+tqdm
+pytest
+jupyter
