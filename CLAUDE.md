@@ -20,6 +20,8 @@ displacement that noise + non-IID heterogeneity cannot explain (noise-aware Auto
 - src/fedguard/aggregators.py is pure NumPy (no Flower import). Flower code lives in flower_app/.
 - DataLoader num_workers=0 on Windows. Guard scripts with if __name__ == "__main__":.
 - Never commit data/raw, data/processed, results/runs, *.pt.
+- Every finding (bug caught, data surprise, measurement, decision, negative result) goes into
+  Findings.md as a numbered entry: what we did / what we found (numbers) / evidence / decision.
 
 ## Machine
 Everything (coding, dataset, training, experiments) runs on ONE Windows laptop: RTX 3050 4 GB,
