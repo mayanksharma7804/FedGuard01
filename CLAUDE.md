@@ -48,7 +48,14 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 2 - data pipeline DONE (see docs/phase_notes/P2_data.md). Next: Phase 3 (CNN-LSTM, B0).
+Update this line at the start of every phase: Phase 3 - centralised baseline DONE (docs/phase_notes/P3_centralised.md). Next: Phase 4 (fl_sim.py + FedAvg B1).
+
+## Training facts (Phase 3)
+- Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).
+- B0 = ceiling: test macro-F1 0.597 +/- 0.004 (seeds 42/43/44), binary F1 0.912, benign FPR 0.068.
+- `python scripts/run_centralised.py` (skips finished runs; live log in results/runs/<run>/train.log).
+- Decide designs on the VALIDATION split only: `python scripts/compare_runs.py --glob "<pattern>"`.
+- Run at most 2 trainings in parallel (laptop heats up, F21).
 
 ## Data facts (Phase 2)
 - `python scripts/prepare_data.py` -> data/processed/nf_unsw.npz (+ _manifest.json); `python scripts/make_partitions.py` -> partitions/nf_unsw_alpha{a}_k{K}_seed{s}.npz.

@@ -1,0 +1,17 @@
+# B0 - centralised CNN-LSTM: all training data in one place, no federation, no DP.
+# This is the accuracy ceiling every federated / private baseline is compared with.
+name: b0_centralised
+dataset: nf_unsw
+seed: 42
+model: {conv1: 32, conv2: 64, hidden: 64, dropout: 0.3}
+train:
+  # lr and class_weight were chosen in Phase 3 by a 3x3 grid on the VALIDATION split, seed 42
+  # (Findings.md F19): best = no class weights, lr 0.2 (val macro-F1 0.6315).
+  lr: 0.2
+  batch_size: 256
+  max_epochs: 300           # the grid winner was still creeping up at epoch 200
+  patience: 30
+  min_epochs: 20
+  class_weight: none
+  eval_batch: 4096
+  device: auto
