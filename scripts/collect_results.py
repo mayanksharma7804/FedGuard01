@@ -32,7 +32,11 @@ def row(run_dir):
          "clip": cfg["dp"].get("clip") if cfg["dp"].get("epsilon") is not None else None,
          "max_rounds": cfg["fl"]["max_rounds"], "epsilon_spent_max": test.get("epsilon_spent_max"),
          "sigma_min": min(test["sigma_per_client"]) if test.get("sigma_per_client") else None,
-         "sigma_max": max(test["sigma_per_client"]) if test.get("sigma_per_client") else None}
+         "sigma_max": max(test["sigma_per_client"]) if test.get("sigma_per_client") else None,
+         # robustness (Phase 6+): averaged over all rounds of the run
+         "agg_params": json.dumps({k: v for k, v in cfg["fl"]["aggregator"].items() if k != "name"}, sort_keys=True),
+         "hrr_mean": test.get("hrr_mean"), "attacker_share_mean": test.get("attacker_share_mean"),
+         "n_attackers": len(test.get("attackers") or [])}
     r.update({f"test_{m}": test[m] for m in METRICS})
     r.update({f"val_{m}": val[m] for m in METRICS})
     r.update({f"test_recall_{c}": v["recall"] for c, v in test["per_class"].items()})

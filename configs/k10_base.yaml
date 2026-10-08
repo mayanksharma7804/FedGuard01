@@ -1,0 +1,26 @@
+# Base for every K = 10 experiment of Phases 6-8 (E4 conflict, E5 attack table, E6, E7).
+# ONE shared name, so a config that appears in several experiments is trained only once.
+# Same client settings as B1/B2 (E = 5, lr 0.2, batch 256) and DP settings of B2 (C = 2, 40-round budget).
+name: k10
+dataset: nf_unsw
+seed: 42
+model: {conv1: 32, conv2: 64, hidden: 64, dropout: 0.3}
+train:
+  lr: 0.2
+  batch_size: 256
+  class_weight: none
+  eval_batch: 4096
+  device: auto
+fl:
+  clients: 10
+  alpha: 0.5
+  local_epochs: 5
+  max_rounds: 40
+  patience: 15
+  min_rounds: 10
+  aggregator: {name: fedavg}
+dp:
+  epsilon: 3.0
+  delta: auto
+  clip: 2.0
+attack: {type: none, fraction: 0.0}

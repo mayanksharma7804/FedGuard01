@@ -139,7 +139,7 @@ def main():
     ap = argparse.ArgumentParser()
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--config")
-    src.add_argument("--sweep")
+    src.add_argument("--sweep", nargs="+", help="one or more sweep files: one queue, duplicates run once")
     ap.add_argument("--set", nargs="*", default=[], metavar="KEY=VALUE", help="dotted overrides, e.g. fl.alpha=0.1")
     ap.add_argument("--shard", default="0/1", help="i/n: run every n-th config starting at i")
     ap.add_argument("--force", action="store_true")
@@ -147,7 +147,14 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    configs = expand_sweep(args.sweep) if args.sweep else [load_config(args.config)]
+    if args.sweep:
+        configs, seen = [], set()
+        for path in args.sweep:                           # several sweeps = one de-duplicated queue, in order
+            for cfg in expand_sweep(path):
+                if run_name(cfg) not in seen:
+                    seen.add(run_name(cfg)); configs.append(cfg)
+    else:
+        configs = [load_config(args.config)]
     for kv in args.set:
         k, v = kv.split("=", 1)
         for cfg in configs:

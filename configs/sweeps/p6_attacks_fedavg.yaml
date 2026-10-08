@@ -1,0 +1,7 @@
+# Phase 6 / E5 (part 1): do the three attacks break FedAvg and DP-FedAvg? K = 10, alpha 0.5, 30% attackers.
+base: configs/k10_base.yaml
+grid:
+  seed: [42, 43, 44]
+  dp.epsilon: [null, 3.0]
+  attack: [{type: none, fraction: 0.0}, {type: label_flip, fraction: 0.3}, {type: sign_flip, fraction: 0.3},
+           {type: gaussian, fraction: 0.3}]

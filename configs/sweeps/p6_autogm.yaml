@@ -1,0 +1,9 @@
+# Phase 6 / E5 (part 2): B4 = AutoGM + DP (3 seeds) and B3 = AutoGM without DP (seed 42) under the attacks.
+# lam_scale = 4 chosen on validation (Findings F39). K = 10, alpha 0.5, 30% attackers.
+base: configs/k10_base.yaml
+set:
+  fl: {aggregator: {name: autogm, lam_scale: 4.0, outer: 20}}
+grid:
+  seed: [42, 43, 44]
+  attack: [{type: none, fraction: 0.0}, {type: label_flip, fraction: 0.3}, {type: sign_flip, fraction: 0.3},
+           {type: gaussian, fraction: 0.3}]

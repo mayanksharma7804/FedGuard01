@@ -1,0 +1,1201 @@
+seed,method,private_rejected,attacker_weight
+0,AutoGM (lambda x1),True,0.0000
+0,AutoGM (lambda x4),True,0.0000
+0,FedGuard linear,False,0.0000
+0,FedGuard quadrature,False,0.0000
+0,FedGuard linear + R4,False,0.0000
+0,FedGuard quadrature + R4,False,0.0000
+1,AutoGM (lambda x1),True,0.0000
+1,AutoGM (lambda x4),True,0.0000
+1,FedGuard linear,True,0.0000
+1,FedGuard quadrature,True,0.0000
+1,FedGuard linear + R4,False,0.0000
+1,FedGuard quadrature + R4,False,0.0000
+2,AutoGM (lambda x1),True,0.0000
+2,AutoGM (lambda x4),True,0.0000
+2,FedGuard linear,False,0.0000
+2,FedGuard quadrature,False,0.0000
+2,FedGuard linear + R4,False,0.0000
+2,FedGuard quadrature + R4,False,0.0000
+3,AutoGM (lambda x1),True,0.0000
+3,AutoGM (lambda x4),True,0.0000
+3,FedGuard linear,True,0.0000
+3,FedGuard quadrature,True,0.0000
+3,FedGuard linear + R4,False,0.0000
+3,FedGuard quadrature + R4,False,0.0000
+4,AutoGM (lambda x1),True,0.0000
+4,AutoGM (lambda x4),True,0.0000
+4,FedGuard linear,False,0.0000
+4,FedGuard quadrature,False,0.0000
+4,FedGuard linear + R4,False,0.0000
+4,FedGuard quadrature + R4,False,0.0000
+5,AutoGM (lambda x1),True,0.0000
+5,AutoGM (lambda x4),True,0.0000
+5,FedGuard linear,False,0.0000
+5,FedGuard quadrature,False,0.0000
+5,FedGuard linear + R4,False,0.0000
+5,FedGuard quadrature + R4,False,0.0000
+6,AutoGM (lambda x1),True,0.0000
+6,AutoGM (lambda x4),True,0.0000
+6,FedGuard linear,True,0.0000
+6,FedGuard quadrature,True,0.0000
+6,FedGuard linear + R4,False,0.0000
+6,FedGuard quadrature + R4,False,0.0000
+7,AutoGM (lambda x1),True,0.0000
+7,AutoGM (lambda x4),True,0.0000
+7,FedGuard linear,False,0.0000
+7,FedGuard quadrature,False,0.0000
+7,FedGuard linear + R4,False,0.0000
+7,FedGuard quadrature + R4,False,0.0000
+8,AutoGM (lambda x1),True,0.0000
+8,AutoGM (lambda x4),True,0.0000
+8,FedGuard linear,True,0.0000
+8,FedGuard quadrature,True,0.0000
+8,FedGuard linear + R4,False,0.0000
+8,FedGuard quadrature + R4,False,0.0000
+9,AutoGM (lambda x1),True,0.0000
+9,AutoGM (lambda x4),True,0.0000
+9,FedGuard linear,False,0.0000
+9,FedGuard quadrature,False,0.0000
+9,FedGuard linear + R4,False,0.0000
+9,FedGuard quadrature + R4,False,0.0000
+10,AutoGM (lambda x1),True,0.0000
+10,AutoGM (lambda x4),True,0.0000
+10,FedGuard linear,True,0.0000
+10,FedGuard quadrature,True,0.0000
+10,FedGuard linear + R4,False,0.0000
+10,FedGuard quadrature + R4,False,0.0000
+11,AutoGM (lambda x1),True,0.0000
+11,AutoGM (lambda x4),True,0.0000
+11,FedGuard linear,True,0.0000
+11,FedGuard quadrature,True,0.0000
+11,FedGuard linear + R4,False,0.0000
+11,FedGuard quadrature + R4,False,0.0000
+12,AutoGM (lambda x1),True,0.0000
+12,AutoGM (lambda x4),True,0.0000
+12,FedGuard linear,True,0.0000
+12,FedGuard quadrature,True,0.0000
+12,FedGuard linear + R4,False,0.0000
+12,FedGuard quadrature + R4,False,0.0000
+13,AutoGM (lambda x1),True,0.0000
+13,AutoGM (lambda x4),True,0.0000
+13,FedGuard linear,False,0.0000
+13,FedGuard quadrature,True,0.0000
+13,FedGuard linear + R4,False,0.0000
+13,FedGuard quadrature + R4,False,0.0000
+14,AutoGM (lambda x1),True,0.0000
+14,AutoGM (lambda x4),True,0.0000
+14,FedGuard linear,False,0.0000
+14,FedGuard quadrature,False,0.0000
+14,FedGuard linear + R4,False,0.0000
+14,FedGuard quadrature + R4,False,0.0000
+15,AutoGM (lambda x1),True,0.0000
+15,AutoGM (lambda x4),True,0.0000
+15,FedGuard linear,True,0.0000
+15,FedGuard quadrature,True,0.0000
+15,FedGuard linear + R4,False,0.0000
+15,FedGuard quadrature + R4,False,0.0000
+16,AutoGM (lambda x1),True,0.0000
+16,AutoGM (lambda x4),True,0.0000
+16,FedGuard linear,True,0.0000
+16,FedGuard quadrature,True,0.0000
+16,FedGuard linear + R4,False,0.0000
+16,FedGuard quadrature + R4,False,0.0000
+17,AutoGM (lambda x1),True,0.0000
+17,AutoGM (lambda x4),True,0.0000
+17,FedGuard linear,True,0.0000
+17,FedGuard quadrature,True,0.0000
+17,FedGuard linear + R4,False,0.0000
+17,FedGuard quadrature + R4,False,0.0000
+18,AutoGM (lambda x1),True,0.0000
+18,AutoGM (lambda x4),True,0.0000
+18,FedGuard linear,False,0.0000
+18,FedGuard quadrature,False,0.0000
+18,FedGuard linear + R4,False,0.0000
+18,FedGuard quadrature + R4,False,0.0000
+19,AutoGM (lambda x1),True,0.0000
+19,AutoGM (lambda x4),True,0.0000
+19,FedGuard linear,True,0.0000
+19,FedGuard quadrature,True,0.0000
+19,FedGuard linear + R4,False,0.0000
+19,FedGuard quadrature + R4,False,0.0000
+20,AutoGM (lambda x1),True,0.0000
+20,AutoGM (lambda x4),True,0.0000
+20,FedGuard linear,True,0.0000
+20,FedGuard quadrature,True,0.0000
+20,FedGuard linear + R4,False,0.0000
+20,FedGuard quadrature + R4,False,0.0000
+21,AutoGM (lambda x1),True,0.0000
+21,AutoGM (lambda x4),True,0.0000
+21,FedGuard linear,True,0.0000
+21,FedGuard quadrature,True,0.0000
+21,FedGuard linear + R4,False,0.0000
+21,FedGuard quadrature + R4,False,0.0000
+22,AutoGM (lambda x1),True,0.0000
+22,AutoGM (lambda x4),True,0.0000
+22,FedGuard linear,True,0.0000
+22,FedGuard quadrature,True,0.0000
+22,FedGuard linear + R4,True,0.0000
+22,FedGuard quadrature + R4,True,0.0000
+23,AutoGM (lambda x1),True,0.0000
+23,AutoGM (lambda x4),True,0.0000
+23,FedGuard linear,False,0.0000
+23,FedGuard quadrature,False,0.0000
+23,FedGuard linear + R4,False,0.0000
+23,FedGuard quadrature + R4,False,0.0000
+24,AutoGM (lambda x1),True,0.0000
+24,AutoGM (lambda x4),True,0.0000
+24,FedGuard linear,False,0.0000
+24,FedGuard quadrature,False,0.0000
+24,FedGuard linear + R4,False,0.0000
+24,FedGuard quadrature + R4,False,0.0000
+25,AutoGM (lambda x1),True,0.0000
+25,AutoGM (lambda x4),True,0.0000
+25,FedGuard linear,False,0.0000
+25,FedGuard quadrature,False,0.0000
+25,FedGuard linear + R4,False,0.0000
+25,FedGuard quadrature + R4,False,0.0000
+26,AutoGM (lambda x1),True,0.0000
+26,AutoGM (lambda x4),True,0.0000
+26,FedGuard linear,False,0.0000
+26,FedGuard quadrature,False,0.0000
+26,FedGuard linear + R4,False,0.0000
+26,FedGuard quadrature + R4,False,0.0000
+27,AutoGM (lambda x1),True,0.0000
+27,AutoGM (lambda x4),True,0.0000
+27,FedGuard linear,False,0.0000
+27,FedGuard quadrature,False,0.0000
+27,FedGuard linear + R4,False,0.0000
+27,FedGuard quadrature + R4,False,0.0000
+28,AutoGM (lambda x1),True,0.0000
+28,AutoGM (lambda x4),True,0.0000
+28,FedGuard linear,True,0.0000
+28,FedGuard quadrature,True,0.0000
+28,FedGuard linear + R4,False,0.0000
+28,FedGuard quadrature + R4,False,0.0000
+29,AutoGM (lambda x1),True,0.0000
+29,AutoGM (lambda x4),True,0.0000
+29,FedGuard linear,True,0.0000
+29,FedGuard quadrature,True,0.0000
+29,FedGuard linear + R4,False,0.0000
+29,FedGuard quadrature + R4,False,0.0000
+30,AutoGM (lambda x1),True,0.0000
+30,AutoGM (lambda x4),True,0.0000
+30,FedGuard linear,True,0.0000
+30,FedGuard quadrature,True,0.0000
+30,FedGuard linear + R4,False,0.0000
+30,FedGuard quadrature + R4,False,0.0000
+31,AutoGM (lambda x1),True,0.0000
+31,AutoGM (lambda x4),True,0.0000
+31,FedGuard linear,True,0.0000
+31,FedGuard quadrature,True,0.0000
+31,FedGuard linear + R4,False,0.0000
+31,FedGuard quadrature + R4,False,0.0000
+32,AutoGM (lambda x1),True,0.0000
+32,AutoGM (lambda x4),True,0.0000
+32,FedGuard linear,True,0.0000
+32,FedGuard quadrature,True,0.0000
+32,FedGuard linear + R4,False,0.0000
+32,FedGuard quadrature + R4,False,0.0000
+33,AutoGM (lambda x1),True,0.0000
+33,AutoGM (lambda x4),True,0.0000
+33,FedGuard linear,True,0.0000
+33,FedGuard quadrature,True,0.0000
+33,FedGuard linear + R4,False,0.0000
+33,FedGuard quadrature + R4,False,0.0000
+34,AutoGM (lambda x1),True,0.0000
+34,AutoGM (lambda x4),True,0.0000
+34,FedGuard linear,True,0.0000
+34,FedGuard quadrature,True,0.0000
+34,FedGuard linear + R4,False,0.0000
+34,FedGuard quadrature + R4,False,0.0000
+35,AutoGM (lambda x1),True,0.0000
+35,AutoGM (lambda x4),True,0.0000
+35,FedGuard linear,True,0.0000
+35,FedGuard quadrature,True,0.0000
+35,FedGuard linear + R4,False,0.0000
+35,FedGuard quadrature + R4,False,0.0000
+36,AutoGM (lambda x1),True,0.0000
+36,AutoGM (lambda x4),True,0.0000
+36,FedGuard linear,False,0.0000
+36,FedGuard quadrature,False,0.0000
+36,FedGuard linear + R4,False,0.0000
+36,FedGuard quadrature + R4,False,0.0000
+37,AutoGM (lambda x1),True,0.0000
+37,AutoGM (lambda x4),True,0.0000
+37,FedGuard linear,True,0.0000
+37,FedGuard quadrature,True,0.0000
+37,FedGuard linear + R4,False,0.0000
+37,FedGuard quadrature + R4,False,0.0000
+38,AutoGM (lambda x1),True,0.0000
+38,AutoGM (lambda x4),True,0.0000
+38,FedGuard linear,False,0.0000
+38,FedGuard quadrature,False,0.0000
+38,FedGuard linear + R4,False,0.0000
+38,FedGuard quadrature + R4,False,0.0000
+39,AutoGM (lambda x1),True,0.0000
+39,AutoGM (lambda x4),True,0.0000
+39,FedGuard linear,False,0.0000
+39,FedGuard quadrature,False,0.0000
+39,FedGuard linear + R4,False,0.0000
+39,FedGuard quadrature + R4,False,0.0000
+40,AutoGM (lambda x1),True,0.0000
+40,AutoGM (lambda x4),True,0.0000
+40,FedGuard linear,False,0.0000
+40,FedGuard quadrature,False,0.0000
+40,FedGuard linear + R4,False,0.0000
+40,FedGuard quadrature + R4,False,0.0000
+41,AutoGM (lambda x1),True,0.0000
+41,AutoGM (lambda x4),True,0.0000
+41,FedGuard linear,True,0.0000
+41,FedGuard quadrature,True,0.0000
+41,FedGuard linear + R4,False,0.0000
+41,FedGuard quadrature + R4,False,0.0000
+42,AutoGM (lambda x1),True,0.0000
+42,AutoGM (lambda x4),True,0.0000
+42,FedGuard linear,True,0.0000
+42,FedGuard quadrature,True,0.0000
+42,FedGuard linear + R4,False,0.0000
+42,FedGuard quadrature + R4,False,0.0000
+43,AutoGM (lambda x1),True,0.0000
+43,AutoGM (lambda x4),True,0.0000
+43,FedGuard linear,False,0.0000
+43,FedGuard quadrature,False,0.0000
+43,FedGuard linear + R4,False,0.0000
+43,FedGuard quadrature + R4,False,0.0000
+44,AutoGM (lambda x1),True,0.0000
+44,AutoGM (lambda x4),True,0.0000
+44,FedGuard linear,True,0.0000
+44,FedGuard quadrature,True,0.0000
+44,FedGuard linear + R4,False,0.0000
+44,FedGuard quadrature + R4,False,0.0000
+45,AutoGM (lambda x1),True,0.0000
+45,AutoGM (lambda x4),True,0.0000
+45,FedGuard linear,True,0.0000
+45,FedGuard quadrature,True,0.0000
+45,FedGuard linear + R4,False,0.0000
+45,FedGuard quadrature + R4,False,0.0000
+46,AutoGM (lambda x1),True,0.0000
+46,AutoGM (lambda x4),True,0.0000
+46,FedGuard linear,False,0.0000
+46,FedGuard quadrature,False,0.0000
+46,FedGuard linear + R4,False,0.0000
+46,FedGuard quadrature + R4,False,0.0000
+47,AutoGM (lambda x1),True,0.0000
+47,AutoGM (lambda x4),True,0.0000
+47,FedGuard linear,True,0.0000
+47,FedGuard quadrature,True,0.0000
+47,FedGuard linear + R4,False,0.0000
+47,FedGuard quadrature + R4,False,0.0000
+48,AutoGM (lambda x1),True,0.0000
+48,AutoGM (lambda x4),True,0.0000
+48,FedGuard linear,False,0.0000
+48,FedGuard quadrature,False,0.0000
+48,FedGuard linear + R4,False,0.0000
+48,FedGuard quadrature + R4,False,0.0000
+49,AutoGM (lambda x1),True,0.0000
+49,AutoGM (lambda x4),True,0.0000
+49,FedGuard linear,True,0.0000
+49,FedGuard quadrature,True,0.0000
+49,FedGuard linear + R4,False,0.0000
+49,FedGuard quadrature + R4,False,0.0000
+50,AutoGM (lambda x1),True,0.0000
+50,AutoGM (lambda x4),True,0.0000
+50,FedGuard linear,True,0.0000
+50,FedGuard quadrature,True,0.0000
+50,FedGuard linear + R4,False,0.0000
+50,FedGuard quadrature + R4,False,0.0000
+51,AutoGM (lambda x1),True,0.0000
+51,AutoGM (lambda x4),True,0.0000
+51,FedGuard linear,True,0.0000
+51,FedGuard quadrature,True,0.0000
+51,FedGuard linear + R4,False,0.0000
+51,FedGuard quadrature + R4,False,0.0000
+52,AutoGM (lambda x1),True,0.0000
+52,AutoGM (lambda x4),True,0.0000
+52,FedGuard linear,False,0.0000
+52,FedGuard quadrature,False,0.0000
+52,FedGuard linear + R4,False,0.0000
+52,FedGuard quadrature + R4,False,0.0000
+53,AutoGM (lambda x1),True,0.0000
+53,AutoGM (lambda x4),True,0.0000
+53,FedGuard linear,False,0.0000
+53,FedGuard quadrature,False,0.0000
+53,FedGuard linear + R4,False,0.0000
+53,FedGuard quadrature + R4,False,0.0000
+54,AutoGM (lambda x1),True,0.0000
+54,AutoGM (lambda x4),True,0.0000
+54,FedGuard linear,False,0.0000
+54,FedGuard quadrature,False,0.0000
+54,FedGuard linear + R4,False,0.0000
+54,FedGuard quadrature + R4,False,0.0000
+55,AutoGM (lambda x1),True,0.0000
+55,AutoGM (lambda x4),True,0.0000
+55,FedGuard linear,True,0.0000
+55,FedGuard quadrature,True,0.0000
+55,FedGuard linear + R4,False,0.0000
+55,FedGuard quadrature + R4,False,0.0000
+56,AutoGM (lambda x1),True,0.0000
+56,AutoGM (lambda x4),True,0.0000
+56,FedGuard linear,True,0.0000
+56,FedGuard quadrature,True,0.0000
+56,FedGuard linear + R4,False,0.0000
+56,FedGuard quadrature + R4,False,0.0000
+57,AutoGM (lambda x1),True,0.0000
+57,AutoGM (lambda x4),True,0.0000
+57,FedGuard linear,False,0.0000
+57,FedGuard quadrature,False,0.0000
+57,FedGuard linear + R4,False,0.0000
+57,FedGuard quadrature + R4,False,0.0000
+58,AutoGM (lambda x1),True,0.0000
+58,AutoGM (lambda x4),True,0.0000
+58,FedGuard linear,False,0.0000
+58,FedGuard quadrature,False,0.0000
+58,FedGuard linear + R4,False,0.0000
+58,FedGuard quadrature + R4,False,0.0000
+59,AutoGM (lambda x1),True,0.0000
+59,AutoGM (lambda x4),True,0.0000
+59,FedGuard linear,True,0.0000
+59,FedGuard quadrature,True,0.0000
+59,FedGuard linear + R4,False,0.0000
+59,FedGuard quadrature + R4,False,0.0000
+60,AutoGM (lambda x1),True,0.0000
+60,AutoGM (lambda x4),True,0.0000
+60,FedGuard linear,False,0.0000
+60,FedGuard quadrature,False,0.0000
+60,FedGuard linear + R4,False,0.0000
+60,FedGuard quadrature + R4,False,0.0000
+61,AutoGM (lambda x1),True,0.0000
+61,AutoGM (lambda x4),True,0.0000
+61,FedGuard linear,False,0.0000
+61,FedGuard quadrature,False,0.0000
+61,FedGuard linear + R4,False,0.0000
+61,FedGuard quadrature + R4,False,0.0000
+62,AutoGM (lambda x1),True,0.0000
+62,AutoGM (lambda x4),True,0.0000
+62,FedGuard linear,True,0.0000
+62,FedGuard quadrature,True,0.0000
+62,FedGuard linear + R4,False,0.0000
+62,FedGuard quadrature + R4,False,0.0000
+63,AutoGM (lambda x1),True,0.0000
+63,AutoGM (lambda x4),True,0.0000
+63,FedGuard linear,False,0.0000
+63,FedGuard quadrature,False,0.0000
+63,FedGuard linear + R4,False,0.0000
+63,FedGuard quadrature + R4,False,0.0000
+64,AutoGM (lambda x1),True,0.0000
+64,AutoGM (lambda x4),True,0.0000
+64,FedGuard linear,False,0.0000
+64,FedGuard quadrature,False,0.0000
+64,FedGuard linear + R4,False,0.0000
+64,FedGuard quadrature + R4,False,0.0000
+65,AutoGM (lambda x1),True,0.0000
+65,AutoGM (lambda x4),True,0.0000
+65,FedGuard linear,False,0.0000
+65,FedGuard quadrature,False,0.0000
+65,FedGuard linear + R4,False,0.0000
+65,FedGuard quadrature + R4,False,0.0000
+66,AutoGM (lambda x1),True,0.0000
+66,AutoGM (lambda x4),True,0.0000
+66,FedGuard linear,True,0.0000
+66,FedGuard quadrature,True,0.0000
+66,FedGuard linear + R4,False,0.0000
+66,FedGuard quadrature + R4,False,0.0000
+67,AutoGM (lambda x1),True,0.0000
+67,AutoGM (lambda x4),True,0.0000
+67,FedGuard linear,True,0.0000
+67,FedGuard quadrature,True,0.0000
+67,FedGuard linear + R4,False,0.0000
+67,FedGuard quadrature + R4,False,0.0000
+68,AutoGM (lambda x1),True,0.0000
+68,AutoGM (lambda x4),True,0.0000
+68,FedGuard linear,True,0.0000
+68,FedGuard quadrature,True,0.0000
+68,FedGuard linear + R4,False,0.0000
+68,FedGuard quadrature + R4,False,0.0000
+69,AutoGM (lambda x1),True,0.0000
+69,AutoGM (lambda x4),True,0.0000
+69,FedGuard linear,True,0.0000
+69,FedGuard quadrature,True,0.0000
+69,FedGuard linear + R4,False,0.0000
+69,FedGuard quadrature + R4,False,0.0000
+70,AutoGM (lambda x1),True,0.0000
+70,AutoGM (lambda x4),True,0.0000
+70,FedGuard linear,False,0.0000
+70,FedGuard quadrature,False,0.0000
+70,FedGuard linear + R4,False,0.0000
+70,FedGuard quadrature + R4,False,0.0000
+71,AutoGM (lambda x1),True,0.0000
+71,AutoGM (lambda x4),True,0.0000
+71,FedGuard linear,True,0.0000
+71,FedGuard quadrature,True,0.0000
+71,FedGuard linear + R4,False,0.0000
+71,FedGuard quadrature + R4,False,0.0000
+72,AutoGM (lambda x1),True,0.0000
+72,AutoGM (lambda x4),True,0.0000
+72,FedGuard linear,True,0.0000
+72,FedGuard quadrature,True,0.0000
+72,FedGuard linear + R4,False,0.0000
+72,FedGuard quadrature + R4,False,0.0000
+73,AutoGM (lambda x1),True,0.0000
+73,AutoGM (lambda x4),True,0.0000
+73,FedGuard linear,True,0.0000
+73,FedGuard quadrature,True,0.0000
+73,FedGuard linear + R4,False,0.0000
+73,FedGuard quadrature + R4,False,0.0000
+74,AutoGM (lambda x1),True,0.0000
+74,AutoGM (lambda x4),True,0.0000
+74,FedGuard linear,True,0.0000
+74,FedGuard quadrature,True,0.0000
+74,FedGuard linear + R4,False,0.0000
+74,FedGuard quadrature + R4,False,0.0000
+75,AutoGM (lambda x1),True,0.0000
+75,AutoGM (lambda x4),True,0.0000
+75,FedGuard linear,False,0.0000
+75,FedGuard quadrature,False,0.0000
+75,FedGuard linear + R4,False,0.0000
+75,FedGuard quadrature + R4,False,0.0000
+76,AutoGM (lambda x1),True,0.0000
+76,AutoGM (lambda x4),True,0.0000
+76,FedGuard linear,True,0.0000
+76,FedGuard quadrature,True,0.0000
+76,FedGuard linear + R4,False,0.0000
+76,FedGuard quadrature + R4,False,0.0000
+77,AutoGM (lambda x1),True,0.0000
+77,AutoGM (lambda x4),True,0.0000
+77,FedGuard linear,True,0.0000
+77,FedGuard quadrature,True,0.0000
+77,FedGuard linear + R4,False,0.0000
+77,FedGuard quadrature + R4,False,0.0000
+78,AutoGM (lambda x1),True,0.0000
+78,AutoGM (lambda x4),True,0.0000
+78,FedGuard linear,True,0.0000
+78,FedGuard quadrature,True,0.0000
+78,FedGuard linear + R4,False,0.0000
+78,FedGuard quadrature + R4,False,0.0000
+79,AutoGM (lambda x1),True,0.0000
+79,AutoGM (lambda x4),True,0.0000
+79,FedGuard linear,True,0.0000
+79,FedGuard quadrature,True,0.0000
+79,FedGuard linear + R4,False,0.0000
+79,FedGuard quadrature + R4,False,0.0000
+80,AutoGM (lambda x1),True,0.0000
+80,AutoGM (lambda x4),True,0.0000
+80,FedGuard linear,True,0.0000
+80,FedGuard quadrature,True,0.0000
+80,FedGuard linear + R4,False,0.0000
+80,FedGuard quadrature + R4,False,0.0000
+81,AutoGM (lambda x1),True,0.0000
+81,AutoGM (lambda x4),True,0.0000
+81,FedGuard linear,True,0.0000
+81,FedGuard quadrature,True,0.0000
+81,FedGuard linear + R4,False,0.0000
+81,FedGuard quadrature + R4,False,0.0000
+82,AutoGM (lambda x1),True,0.0000
+82,AutoGM (lambda x4),True,0.0000
+82,FedGuard linear,True,0.0000
+82,FedGuard quadrature,True,0.0000
+82,FedGuard linear + R4,False,0.0000
+82,FedGuard quadrature + R4,False,0.0000
+83,AutoGM (lambda x1),True,0.0000
+83,AutoGM (lambda x4),True,0.0000
+83,FedGuard linear,False,0.0000
+83,FedGuard quadrature,False,0.0000
+83,FedGuard linear + R4,False,0.0000
+83,FedGuard quadrature + R4,False,0.0000
+84,AutoGM (lambda x1),True,0.0000
+84,AutoGM (lambda x4),True,0.0000
+84,FedGuard linear,False,0.0000
+84,FedGuard quadrature,False,0.0000
+84,FedGuard linear + R4,False,0.0000
+84,FedGuard quadrature + R4,False,0.0000
+85,AutoGM (lambda x1),True,0.0000
+85,AutoGM (lambda x4),True,0.0000
+85,FedGuard linear,True,0.0000
+85,FedGuard quadrature,True,0.0000
+85,FedGuard linear + R4,False,0.0000
+85,FedGuard quadrature + R4,False,0.0000
+86,AutoGM (lambda x1),True,0.0000
+86,AutoGM (lambda x4),True,0.0000
+86,FedGuard linear,False,0.0000
+86,FedGuard quadrature,False,0.0000
+86,FedGuard linear + R4,False,0.0000
+86,FedGuard quadrature + R4,False,0.0000
+87,AutoGM (lambda x1),True,0.0000
+87,AutoGM (lambda x4),True,0.0000
+87,FedGuard linear,False,0.0000
+87,FedGuard quadrature,False,0.0000
+87,FedGuard linear + R4,False,0.0000
+87,FedGuard quadrature + R4,False,0.0000
+88,AutoGM (lambda x1),True,0.0000
+88,AutoGM (lambda x4),True,0.0000
+88,FedGuard linear,True,0.0000
+88,FedGuard quadrature,True,0.0000
+88,FedGuard linear + R4,False,0.0000
+88,FedGuard quadrature + R4,False,0.0000
+89,AutoGM (lambda x1),True,0.0000
+89,AutoGM (lambda x4),True,0.0000
+89,FedGuard linear,False,0.0000
+89,FedGuard quadrature,False,0.0000
+89,FedGuard linear + R4,False,0.0000
+89,FedGuard quadrature + R4,False,0.0000
+90,AutoGM (lambda x1),True,0.0000
+90,AutoGM (lambda x4),True,0.0000
+90,FedGuard linear,True,0.0000
+90,FedGuard quadrature,True,0.0000
+90,FedGuard linear + R4,False,0.0000
+90,FedGuard quadrature + R4,False,0.0000
+91,AutoGM (lambda x1),True,0.0000
+91,AutoGM (lambda x4),True,0.0000
+91,FedGuard linear,True,0.0000
+91,FedGuard quadrature,True,0.0000
+91,FedGuard linear + R4,False,0.0000
+91,FedGuard quadrature + R4,False,0.0000
+92,AutoGM (lambda x1),True,0.0000
+92,AutoGM (lambda x4),True,0.0000
+92,FedGuard linear,False,0.0000
+92,FedGuard quadrature,False,0.0000
+92,FedGuard linear + R4,False,0.0000
+92,FedGuard quadrature + R4,False,0.0000
+93,AutoGM (lambda x1),True,0.0000
+93,AutoGM (lambda x4),True,0.0000
+93,FedGuard linear,False,0.0000
+93,FedGuard quadrature,False,0.0000
+93,FedGuard linear + R4,False,0.0000
+93,FedGuard quadrature + R4,False,0.0000
+94,AutoGM (lambda x1),True,0.0000
+94,AutoGM (lambda x4),True,0.0000
+94,FedGuard linear,True,0.0000
+94,FedGuard quadrature,True,0.0000
+94,FedGuard linear + R4,False,0.0000
+94,FedGuard quadrature + R4,False,0.0000
+95,AutoGM (lambda x1),True,0.0000
+95,AutoGM (lambda x4),True,0.0000
+95,FedGuard linear,True,0.0000
+95,FedGuard quadrature,True,0.0000
+95,FedGuard linear + R4,False,0.0000
+95,FedGuard quadrature + R4,False,0.0000
+96,AutoGM (lambda x1),True,0.0000
+96,AutoGM (lambda x4),True,0.0000
+96,FedGuard linear,False,0.0000
+96,FedGuard quadrature,False,0.0000
+96,FedGuard linear + R4,False,0.0000
+96,FedGuard quadrature + R4,False,0.0000
+97,AutoGM (lambda x1),True,0.0000
+97,AutoGM (lambda x4),True,0.0000
+97,FedGuard linear,True,0.0000
+97,FedGuard quadrature,True,0.0000
+97,FedGuard linear + R4,False,0.0000
+97,FedGuard quadrature + R4,False,0.0000
+98,AutoGM (lambda x1),True,0.0000
+98,AutoGM (lambda x4),True,0.0000
+98,FedGuard linear,False,0.0000
+98,FedGuard quadrature,False,0.0000
+98,FedGuard linear + R4,False,0.0000
+98,FedGuard quadrature + R4,False,0.0000
+99,AutoGM (lambda x1),True,0.0000
+99,AutoGM (lambda x4),True,0.0000
+99,FedGuard linear,False,0.0000
+99,FedGuard quadrature,False,0.0000
+99,FedGuard linear + R4,False,0.0000
+99,FedGuard quadrature + R4,False,0.0000
+100,AutoGM (lambda x1),True,0.0000
+100,AutoGM (lambda x4),True,0.0000
+100,FedGuard linear,True,0.0000
+100,FedGuard quadrature,True,0.0000
+100,FedGuard linear + R4,False,0.0000
+100,FedGuard quadrature + R4,False,0.0000
+101,AutoGM (lambda x1),True,0.0000
+101,AutoGM (lambda x4),True,0.0000
+101,FedGuard linear,True,0.0000
+101,FedGuard quadrature,True,0.0000
+101,FedGuard linear + R4,False,0.0000
+101,FedGuard quadrature + R4,False,0.0000
+102,AutoGM (lambda x1),True,0.0000
+102,AutoGM (lambda x4),True,0.0000
+102,FedGuard linear,True,0.0000
+102,FedGuard quadrature,True,0.0000
+102,FedGuard linear + R4,False,0.0000
+102,FedGuard quadrature + R4,False,0.0000
+103,AutoGM (lambda x1),True,0.0000
+103,AutoGM (lambda x4),True,0.0000
+103,FedGuard linear,True,0.0000
+103,FedGuard quadrature,True,0.0000
+103,FedGuard linear + R4,False,0.0000
+103,FedGuard quadrature + R4,False,0.0000
+104,AutoGM (lambda x1),True,0.0000
+104,AutoGM (lambda x4),True,0.0000
+104,FedGuard linear,True,0.0000
+104,FedGuard quadrature,True,0.0000
+104,FedGuard linear + R4,False,0.0000
+104,FedGuard quadrature + R4,False,0.0000
+105,AutoGM (lambda x1),True,0.0000
+105,AutoGM (lambda x4),True,0.0000
+105,FedGuard linear,False,0.0000
+105,FedGuard quadrature,False,0.0000
+105,FedGuard linear + R4,False,0.0000
+105,FedGuard quadrature + R4,False,0.0000
+106,AutoGM (lambda x1),True,0.0000
+106,AutoGM (lambda x4),True,0.0000
+106,FedGuard linear,False,0.0000
+106,FedGuard quadrature,False,0.0000
+106,FedGuard linear + R4,False,0.0000
+106,FedGuard quadrature + R4,False,0.0000
+107,AutoGM (lambda x1),True,0.0000
+107,AutoGM (lambda x4),True,0.0000
+107,FedGuard linear,False,0.0000
+107,FedGuard quadrature,False,0.0000
+107,FedGuard linear + R4,False,0.0000
+107,FedGuard quadrature + R4,False,0.0000
+108,AutoGM (lambda x1),True,0.0000
+108,AutoGM (lambda x4),True,0.0000
+108,FedGuard linear,True,0.0000
+108,FedGuard quadrature,True,0.0000
+108,FedGuard linear + R4,False,0.0000
+108,FedGuard quadrature + R4,False,0.0000
+109,AutoGM (lambda x1),True,0.0000
+109,AutoGM (lambda x4),True,0.0000
+109,FedGuard linear,False,0.0000
+109,FedGuard quadrature,False,0.0000
+109,FedGuard linear + R4,False,0.0000
+109,FedGuard quadrature + R4,False,0.0000
+110,AutoGM (lambda x1),True,0.0000
+110,AutoGM (lambda x4),True,0.0000
+110,FedGuard linear,True,0.0000
+110,FedGuard quadrature,True,0.0000
+110,FedGuard linear + R4,False,0.0000
+110,FedGuard quadrature + R4,False,0.0000
+111,AutoGM (lambda x1),True,0.0000
+111,AutoGM (lambda x4),True,0.0000
+111,FedGuard linear,False,0.0000
+111,FedGuard quadrature,False,0.0000
+111,FedGuard linear + R4,False,0.0000
+111,FedGuard quadrature + R4,False,0.0000
+112,AutoGM (lambda x1),True,0.0000
+112,AutoGM (lambda x4),True,0.0000
+112,FedGuard linear,False,0.0000
+112,FedGuard quadrature,False,0.0000
+112,FedGuard linear + R4,False,0.0000
+112,FedGuard quadrature + R4,False,0.0000
+113,AutoGM (lambda x1),True,0.0000
+113,AutoGM (lambda x4),True,0.0000
+113,FedGuard linear,False,0.0000
+113,FedGuard quadrature,False,0.0000
+113,FedGuard linear + R4,False,0.0000
+113,FedGuard quadrature + R4,False,0.0000
+114,AutoGM (lambda x1),True,0.0000
+114,AutoGM (lambda x4),True,0.0000
+114,FedGuard linear,False,0.0000
+114,FedGuard quadrature,False,0.0000
+114,FedGuard linear + R4,False,0.0000
+114,FedGuard quadrature + R4,False,0.0000
+115,AutoGM (lambda x1),True,0.0000
+115,AutoGM (lambda x4),True,0.0000
+115,FedGuard linear,True,0.0000
+115,FedGuard quadrature,True,0.0000
+115,FedGuard linear + R4,False,0.0000
+115,FedGuard quadrature + R4,False,0.0000
+116,AutoGM (lambda x1),True,0.0000
+116,AutoGM (lambda x4),True,0.0000
+116,FedGuard linear,True,0.0000
+116,FedGuard quadrature,True,0.0000
+116,FedGuard linear + R4,False,0.0000
+116,FedGuard quadrature + R4,False,0.0000
+117,AutoGM (lambda x1),True,0.0000
+117,AutoGM (lambda x4),True,0.0000
+117,FedGuard linear,False,0.0000
+117,FedGuard quadrature,False,0.0000
+117,FedGuard linear + R4,False,0.0000
+117,FedGuard quadrature + R4,False,0.0000
+118,AutoGM (lambda x1),True,0.0000
+118,AutoGM (lambda x4),True,0.0000
+118,FedGuard linear,True,0.0000
+118,FedGuard quadrature,True,0.0000
+118,FedGuard linear + R4,False,0.0000
+118,FedGuard quadrature + R4,False,0.0000
+119,AutoGM (lambda x1),True,0.0000
+119,AutoGM (lambda x4),True,0.0000
+119,FedGuard linear,True,0.0000
+119,FedGuard quadrature,True,0.0000
+119,FedGuard linear + R4,False,0.0000
+119,FedGuard quadrature + R4,False,0.0000
+120,AutoGM (lambda x1),True,0.0000
+120,AutoGM (lambda x4),True,0.0000
+120,FedGuard linear,False,0.0000
+120,FedGuard quadrature,False,0.0000
+120,FedGuard linear + R4,False,0.0000
+120,FedGuard quadrature + R4,False,0.0000
+121,AutoGM (lambda x1),True,0.0000
+121,AutoGM (lambda x4),True,0.0000
+121,FedGuard linear,True,0.0000
+121,FedGuard quadrature,True,0.0000
+121,FedGuard linear + R4,False,0.0000
+121,FedGuard quadrature + R4,False,0.0000
+122,AutoGM (lambda x1),True,0.0000
+122,AutoGM (lambda x4),True,0.0000
+122,FedGuard linear,False,0.0000
+122,FedGuard quadrature,False,0.0000
+122,FedGuard linear + R4,False,0.0000
+122,FedGuard quadrature + R4,False,0.0000
+123,AutoGM (lambda x1),True,0.0000
+123,AutoGM (lambda x4),True,0.0000
+123,FedGuard linear,False,0.0000
+123,FedGuard quadrature,False,0.0000
+123,FedGuard linear + R4,False,0.0000
+123,FedGuard quadrature + R4,False,0.0000
+124,AutoGM (lambda x1),True,0.0000
+124,AutoGM (lambda x4),True,0.0000
+124,FedGuard linear,False,0.0000
+124,FedGuard quadrature,False,0.0000
+124,FedGuard linear + R4,False,0.0000
+124,FedGuard quadrature + R4,False,0.0000
+125,AutoGM (lambda x1),True,0.0000
+125,AutoGM (lambda x4),True,0.0000
+125,FedGuard linear,False,0.0000
+125,FedGuard quadrature,False,0.0000
+125,FedGuard linear + R4,False,0.0000
+125,FedGuard quadrature + R4,False,0.0000
+126,AutoGM (lambda x1),True,0.0000
+126,AutoGM (lambda x4),True,0.0000
+126,FedGuard linear,False,0.0000
+126,FedGuard quadrature,False,0.0000
+126,FedGuard linear + R4,False,0.0000
+126,FedGuard quadrature + R4,False,0.0000
+127,AutoGM (lambda x1),True,0.0000
+127,AutoGM (lambda x4),True,0.0000
+127,FedGuard linear,False,0.0000
+127,FedGuard quadrature,False,0.0000
+127,FedGuard linear + R4,False,0.0000
+127,FedGuard quadrature + R4,False,0.0000
+128,AutoGM (lambda x1),True,0.0000
+128,AutoGM (lambda x4),True,0.0000
+128,FedGuard linear,False,0.0000
+128,FedGuard quadrature,False,0.0000
+128,FedGuard linear + R4,False,0.0000
+128,FedGuard quadrature + R4,False,0.0000
+129,AutoGM (lambda x1),True,0.0000
+129,AutoGM (lambda x4),True,0.0000
+129,FedGuard linear,True,0.0000
+129,FedGuard quadrature,True,0.0000
+129,FedGuard linear + R4,False,0.0000
+129,FedGuard quadrature + R4,False,0.0000
+130,AutoGM (lambda x1),True,0.0000
+130,AutoGM (lambda x4),True,0.0000
+130,FedGuard linear,False,0.0000
+130,FedGuard quadrature,False,0.0000
+130,FedGuard linear + R4,False,0.0000
+130,FedGuard quadrature + R4,False,0.0000
+131,AutoGM (lambda x1),True,0.0000
+131,AutoGM (lambda x4),True,0.0000
+131,FedGuard linear,False,0.0000
+131,FedGuard quadrature,False,0.0000
+131,FedGuard linear + R4,False,0.0000
+131,FedGuard quadrature + R4,False,0.0000
+132,AutoGM (lambda x1),True,0.0000
+132,AutoGM (lambda x4),True,0.0000
+132,FedGuard linear,True,0.0000
+132,FedGuard quadrature,True,0.0000
+132,FedGuard linear + R4,False,0.0000
+132,FedGuard quadrature + R4,False,0.0000
+133,AutoGM (lambda x1),True,0.0000
+133,AutoGM (lambda x4),True,0.0000
+133,FedGuard linear,False,0.0000
+133,FedGuard quadrature,False,0.0000
+133,FedGuard linear + R4,False,0.0000
+133,FedGuard quadrature + R4,False,0.0000
+134,AutoGM (lambda x1),True,0.0000
+134,AutoGM (lambda x4),True,0.0000
+134,FedGuard linear,False,0.0000
+134,FedGuard quadrature,False,0.0000
+134,FedGuard linear + R4,False,0.0000
+134,FedGuard quadrature + R4,False,0.0000
+135,AutoGM (lambda x1),True,0.0000
+135,AutoGM (lambda x4),True,0.0000
+135,FedGuard linear,True,0.0000
+135,FedGuard quadrature,True,0.0000
+135,FedGuard linear + R4,False,0.0000
+135,FedGuard quadrature + R4,False,0.0000
+136,AutoGM (lambda x1),True,0.0000
+136,AutoGM (lambda x4),True,0.0000
+136,FedGuard linear,True,0.0000
+136,FedGuard quadrature,True,0.0000
+136,FedGuard linear + R4,False,0.0000
+136,FedGuard quadrature + R4,False,0.0000
+137,AutoGM (lambda x1),True,0.0000
+137,AutoGM (lambda x4),True,0.0000
+137,FedGuard linear,True,0.0000
+137,FedGuard quadrature,True,0.0000
+137,FedGuard linear + R4,False,0.0000
+137,FedGuard quadrature + R4,False,0.0000
+138,AutoGM (lambda x1),True,0.0000
+138,AutoGM (lambda x4),True,0.0000
+138,FedGuard linear,False,0.0000
+138,FedGuard quadrature,False,0.0000
+138,FedGuard linear + R4,False,0.0000
+138,FedGuard quadrature + R4,False,0.0000
+139,AutoGM (lambda x1),True,0.0000
+139,AutoGM (lambda x4),True,0.0000
+139,FedGuard linear,True,0.0000
+139,FedGuard quadrature,True,0.0000
+139,FedGuard linear + R4,False,0.0000
+139,FedGuard quadrature + R4,False,0.0000
+140,AutoGM (lambda x1),True,0.0000
+140,AutoGM (lambda x4),True,0.0000
+140,FedGuard linear,False,0.0000
+140,FedGuard quadrature,False,0.0000
+140,FedGuard linear + R4,False,0.0000
+140,FedGuard quadrature + R4,False,0.0000
+141,AutoGM (lambda x1),True,0.0000
+141,AutoGM (lambda x4),True,0.0000
+141,FedGuard linear,True,0.0000
+141,FedGuard quadrature,True,0.0000
+141,FedGuard linear + R4,False,0.0000
+141,FedGuard quadrature + R4,False,0.0000
+142,AutoGM (lambda x1),True,0.0000
+142,AutoGM (lambda x4),True,0.0000
+142,FedGuard linear,True,0.0000
+142,FedGuard quadrature,True,0.0000
+142,FedGuard linear + R4,False,0.0000
+142,FedGuard quadrature + R4,False,0.0000
+143,AutoGM (lambda x1),True,0.0000
+143,AutoGM (lambda x4),True,0.0000
+143,FedGuard linear,False,0.0000
+143,FedGuard quadrature,False,0.0000
+143,FedGuard linear + R4,False,0.0000
+143,FedGuard quadrature + R4,False,0.0000
+144,AutoGM (lambda x1),True,0.0000
+144,AutoGM (lambda x4),True,0.0000
+144,FedGuard linear,True,0.0000
+144,FedGuard quadrature,True,0.0000
+144,FedGuard linear + R4,False,0.0000
+144,FedGuard quadrature + R4,False,0.0000
+145,AutoGM (lambda x1),True,0.0000
+145,AutoGM (lambda x4),True,0.0000
+145,FedGuard linear,False,0.0000
+145,FedGuard quadrature,False,0.0000
+145,FedGuard linear + R4,False,0.0000
+145,FedGuard quadrature + R4,False,0.0000
+146,AutoGM (lambda x1),True,0.0000
+146,AutoGM (lambda x4),True,0.0000
+146,FedGuard linear,False,0.0000
+146,FedGuard quadrature,False,0.0000
+146,FedGuard linear + R4,False,0.0000
+146,FedGuard quadrature + R4,False,0.0000
+147,AutoGM (lambda x1),True,0.0000
+147,AutoGM (lambda x4),True,0.0000
+147,FedGuard linear,False,0.0000
+147,FedGuard quadrature,False,0.0000
+147,FedGuard linear + R4,False,0.0000
+147,FedGuard quadrature + R4,False,0.0000
+148,AutoGM (lambda x1),True,0.0000
+148,AutoGM (lambda x4),True,0.0000
+148,FedGuard linear,False,0.0000
+148,FedGuard quadrature,False,0.0000
+148,FedGuard linear + R4,False,0.0000
+148,FedGuard quadrature + R4,False,0.0000
+149,AutoGM (lambda x1),True,0.0000
+149,AutoGM (lambda x4),True,0.0000
+149,FedGuard linear,False,0.0000
+149,FedGuard quadrature,False,0.0000
+149,FedGuard linear + R4,False,0.0000
+149,FedGuard quadrature + R4,False,0.0000
+150,AutoGM (lambda x1),True,0.0000
+150,AutoGM (lambda x4),True,0.0000
+150,FedGuard linear,True,0.0000
+150,FedGuard quadrature,True,0.0000
+150,FedGuard linear + R4,False,0.0000
+150,FedGuard quadrature + R4,False,0.0000
+151,AutoGM (lambda x1),True,0.0000
+151,AutoGM (lambda x4),True,0.0000
+151,FedGuard linear,True,0.0000
+151,FedGuard quadrature,True,0.0000
+151,FedGuard linear + R4,False,0.0000
+151,FedGuard quadrature + R4,False,0.0000
+152,AutoGM (lambda x1),True,0.0000
+152,AutoGM (lambda x4),True,0.0000
+152,FedGuard linear,True,0.0000
+152,FedGuard quadrature,True,0.0000
+152,FedGuard linear + R4,False,0.0000
+152,FedGuard quadrature + R4,False,0.0000
+153,AutoGM (lambda x1),True,0.0000
+153,AutoGM (lambda x4),True,0.0000
+153,FedGuard linear,True,0.0000
+153,FedGuard quadrature,True,0.0000
+153,FedGuard linear + R4,False,0.0000
+153,FedGuard quadrature + R4,False,0.0000
+154,AutoGM (lambda x1),True,0.0000
+154,AutoGM (lambda x4),True,0.0000
+154,FedGuard linear,True,0.0000
+154,FedGuard quadrature,True,0.0000
+154,FedGuard linear + R4,False,0.0000
+154,FedGuard quadrature + R4,False,0.0000
+155,AutoGM (lambda x1),True,0.0000
+155,AutoGM (lambda x4),True,0.0000
+155,FedGuard linear,True,0.0000
+155,FedGuard quadrature,True,0.0000
+155,FedGuard linear + R4,False,0.0000
+155,FedGuard quadrature + R4,False,0.0000
+156,AutoGM (lambda x1),True,0.0000
+156,AutoGM (lambda x4),True,0.0000
+156,FedGuard linear,False,0.0000
+156,FedGuard quadrature,False,0.0000
+156,FedGuard linear + R4,False,0.0000
+156,FedGuard quadrature + R4,False,0.0000
+157,AutoGM (lambda x1),True,0.0000
+157,AutoGM (lambda x4),True,0.0000
+157,FedGuard linear,False,0.0000
+157,FedGuard quadrature,False,0.0000
+157,FedGuard linear + R4,False,0.0000
+157,FedGuard quadrature + R4,False,0.0000
+158,AutoGM (lambda x1),True,0.0000
+158,AutoGM (lambda x4),True,0.0000
+158,FedGuard linear,True,0.0000
+158,FedGuard quadrature,True,0.0000
+158,FedGuard linear + R4,False,0.0000
+158,FedGuard quadrature + R4,False,0.0000
+159,AutoGM (lambda x1),True,0.0000
+159,AutoGM (lambda x4),True,0.0000
+159,FedGuard linear,True,0.0000
+159,FedGuard quadrature,True,0.0000
+159,FedGuard linear + R4,False,0.0000
+159,FedGuard quadrature + R4,False,0.0000
+160,AutoGM (lambda x1),True,0.0000
+160,AutoGM (lambda x4),True,0.0000
+160,FedGuard linear,True,0.0000
+160,FedGuard quadrature,True,0.0000
+160,FedGuard linear + R4,False,0.0000
+160,FedGuard quadrature + R4,False,0.0000
+161,AutoGM (lambda x1),True,0.0000
+161,AutoGM (lambda x4),True,0.0000
+161,FedGuard linear,True,0.0000
+161,FedGuard quadrature,True,0.0000
+161,FedGuard linear + R4,False,0.0000
+161,FedGuard quadrature + R4,False,0.0000
+162,AutoGM (lambda x1),True,0.0000
+162,AutoGM (lambda x4),True,0.0000
+162,FedGuard linear,False,0.0000
+162,FedGuard quadrature,False,0.0000
+162,FedGuard linear + R4,False,0.0000
+162,FedGuard quadrature + R4,False,0.0000
+163,AutoGM (lambda x1),True,0.0000
+163,AutoGM (lambda x4),True,0.0000
+163,FedGuard linear,True,0.0000
+163,FedGuard quadrature,True,0.0000
+163,FedGuard linear + R4,False,0.0000
+163,FedGuard quadrature + R4,False,0.0000
+164,AutoGM (lambda x1),True,0.0000
+164,AutoGM (lambda x4),True,0.0000
+164,FedGuard linear,False,0.0000
+164,FedGuard quadrature,False,0.0000
+164,FedGuard linear + R4,False,0.0000
+164,FedGuard quadrature + R4,False,0.0000
+165,AutoGM (lambda x1),True,0.0000
+165,AutoGM (lambda x4),True,0.0000
+165,FedGuard linear,False,0.0000
+165,FedGuard quadrature,False,0.0000
+165,FedGuard linear + R4,False,0.0000
+165,FedGuard quadrature + R4,False,0.0000
+166,AutoGM (lambda x1),True,0.0000
+166,AutoGM (lambda x4),True,0.0000
+166,FedGuard linear,False,0.0000
+166,FedGuard quadrature,False,0.0000
+166,FedGuard linear + R4,False,0.0000
+166,FedGuard quadrature + R4,False,0.0000
+167,AutoGM (lambda x1),True,0.0000
+167,AutoGM (lambda x4),True,0.0000
+167,FedGuard linear,False,0.0000
+167,FedGuard quadrature,False,0.0000
+167,FedGuard linear + R4,False,0.0000
+167,FedGuard quadrature + R4,False,0.0000
+168,AutoGM (lambda x1),True,0.0000
+168,AutoGM (lambda x4),True,0.0000
+168,FedGuard linear,True,0.0000
+168,FedGuard quadrature,True,0.0000
+168,FedGuard linear + R4,False,0.0000
+168,FedGuard quadrature + R4,False,0.0000
+169,AutoGM (lambda x1),True,0.0000
+169,AutoGM (lambda x4),True,0.0000
+169,FedGuard linear,True,0.0000
+169,FedGuard quadrature,True,0.0000
+169,FedGuard linear + R4,False,0.0000
+169,FedGuard quadrature + R4,False,0.0000
+170,AutoGM (lambda x1),True,0.0000
+170,AutoGM (lambda x4),True,0.0000
+170,FedGuard linear,True,0.0000
+170,FedGuard quadrature,True,0.0000
+170,FedGuard linear + R4,False,0.0000
+170,FedGuard quadrature + R4,False,0.0000
+171,AutoGM (lambda x1),True,0.0000
+171,AutoGM (lambda x4),True,0.0000
+171,FedGuard linear,True,0.0000
+171,FedGuard quadrature,True,0.0000
+171,FedGuard linear + R4,False,0.0000
+171,FedGuard quadrature + R4,False,0.0000
+172,AutoGM (lambda x1),True,0.0000
+172,AutoGM (lambda x4),True,0.0000
+172,FedGuard linear,False,0.0000
+172,FedGuard quadrature,False,0.0000
+172,FedGuard linear + R4,False,0.0000
+172,FedGuard quadrature + R4,False,0.0000
+173,AutoGM (lambda x1),True,0.0000
+173,AutoGM (lambda x4),True,0.0000
+173,FedGuard linear,False,0.0000
+173,FedGuard quadrature,False,0.0000
+173,FedGuard linear + R4,False,0.0000
+173,FedGuard quadrature + R4,False,0.0000
+174,AutoGM (lambda x1),True,0.0000
+174,AutoGM (lambda x4),True,0.0000
+174,FedGuard linear,True,0.0000
+174,FedGuard quadrature,True,0.0000
+174,FedGuard linear + R4,False,0.0000
+174,FedGuard quadrature + R4,False,0.0000
+175,AutoGM (lambda x1),True,0.0000
+175,AutoGM (lambda x4),True,0.0000
+175,FedGuard linear,False,0.0000
+175,FedGuard quadrature,False,0.0000
+175,FedGuard linear + R4,False,0.0000
+175,FedGuard quadrature + R4,False,0.0000
+176,AutoGM (lambda x1),True,0.0000
+176,AutoGM (lambda x4),True,0.0000
+176,FedGuard linear,True,0.0000
+176,FedGuard quadrature,True,0.0000
+176,FedGuard linear + R4,False,0.0000
+176,FedGuard quadrature + R4,False,0.0000
+177,AutoGM (lambda x1),True,0.0000
+177,AutoGM (lambda x4),True,0.0000
+177,FedGuard linear,False,0.0000
+177,FedGuard quadrature,False,0.0000
+177,FedGuard linear + R4,False,0.0000
+177,FedGuard quadrature + R4,False,0.0000
+178,AutoGM (lambda x1),True,0.0000
+178,AutoGM (lambda x4),True,0.0000
+178,FedGuard linear,False,0.0000
+178,FedGuard quadrature,False,0.0000
+178,FedGuard linear + R4,False,0.0000
+178,FedGuard quadrature + R4,False,0.0000
+179,AutoGM (lambda x1),True,0.0000
+179,AutoGM (lambda x4),True,0.0000
+179,FedGuard linear,True,0.0000
+179,FedGuard quadrature,True,0.0000
+179,FedGuard linear + R4,False,0.0000
+179,FedGuard quadrature + R4,False,0.0000
+180,AutoGM (lambda x1),True,0.0000
+180,AutoGM (lambda x4),True,0.0000
+180,FedGuard linear,True,0.0000
+180,FedGuard quadrature,True,0.0000
+180,FedGuard linear + R4,False,0.0000
+180,FedGuard quadrature + R4,False,0.0000
+181,AutoGM (lambda x1),True,0.0000
+181,AutoGM (lambda x4),True,0.0000
+181,FedGuard linear,True,0.0000
+181,FedGuard quadrature,True,0.0000
+181,FedGuard linear + R4,False,0.0000
+181,FedGuard quadrature + R4,False,0.0000
+182,AutoGM (lambda x1),True,0.0000
+182,AutoGM (lambda x4),True,0.0000
+182,FedGuard linear,False,0.0000
+182,FedGuard quadrature,False,0.0000
+182,FedGuard linear + R4,False,0.0000
+182,FedGuard quadrature + R4,False,0.0000
+183,AutoGM (lambda x1),True,0.0000
+183,AutoGM (lambda x4),True,0.0000
+183,FedGuard linear,True,0.0000
+183,FedGuard quadrature,True,0.0000
+183,FedGuard linear + R4,False,0.0000
+183,FedGuard quadrature + R4,False,0.0000
+184,AutoGM (lambda x1),True,0.0000
+184,AutoGM (lambda x4),True,0.0000
+184,FedGuard linear,False,0.0000
+184,FedGuard quadrature,False,0.0000
+184,FedGuard linear + R4,False,0.0000
+184,FedGuard quadrature + R4,False,0.0000
+185,AutoGM (lambda x1),True,0.0000
+185,AutoGM (lambda x4),True,0.0000
+185,FedGuard linear,False,0.0000
+185,FedGuard quadrature,False,0.0000
+185,FedGuard linear + R4,False,0.0000
+185,FedGuard quadrature + R4,False,0.0000
+186,AutoGM (lambda x1),True,0.0000
+186,AutoGM (lambda x4),True,0.0000
+186,FedGuard linear,False,0.0000
+186,FedGuard quadrature,False,0.0000
+186,FedGuard linear + R4,False,0.0000
+186,FedGuard quadrature + R4,False,0.0000
+187,AutoGM (lambda x1),True,0.0000
+187,AutoGM (lambda x4),True,0.0000
+187,FedGuard linear,False,0.0000
+187,FedGuard quadrature,False,0.0000
+187,FedGuard linear + R4,False,0.0000
+187,FedGuard quadrature + R4,False,0.0000
+188,AutoGM (lambda x1),True,0.0000
+188,AutoGM (lambda x4),True,0.0000
+188,FedGuard linear,True,0.0000
+188,FedGuard quadrature,True,0.0000
+188,FedGuard linear + R4,False,0.0000
+188,FedGuard quadrature + R4,False,0.0000
+189,AutoGM (lambda x1),True,0.0000
+189,AutoGM (lambda x4),True,0.0000
+189,FedGuard linear,True,0.0000
+189,FedGuard quadrature,True,0.0000
+189,FedGuard linear + R4,False,0.0000
+189,FedGuard quadrature + R4,False,0.0000
+190,AutoGM (lambda x1),True,0.0000
+190,AutoGM (lambda x4),True,0.0000
+190,FedGuard linear,False,0.0000
+190,FedGuard quadrature,False,0.0000
+190,FedGuard linear + R4,False,0.0000
+190,FedGuard quadrature + R4,False,0.0000
+191,AutoGM (lambda x1),True,0.0000
+191,AutoGM (lambda x4),True,0.0000
+191,FedGuard linear,True,0.0000
+191,FedGuard quadrature,True,0.0000
+191,FedGuard linear + R4,False,0.0000
+191,FedGuard quadrature + R4,False,0.0000
+192,AutoGM (lambda x1),True,0.0000
+192,AutoGM (lambda x4),True,0.0000
+192,FedGuard linear,True,0.0000
+192,FedGuard quadrature,True,0.0000
+192,FedGuard linear + R4,False,0.0000
+192,FedGuard quadrature + R4,False,0.0000
+193,AutoGM (lambda x1),True,0.0000
+193,AutoGM (lambda x4),True,0.0000
+193,FedGuard linear,True,0.0000
+193,FedGuard quadrature,True,0.0000
+193,FedGuard linear + R4,False,0.0000
+193,FedGuard quadrature + R4,False,0.0000
+194,AutoGM (lambda x1),True,0.0000
+194,AutoGM (lambda x4),True,0.0000
+194,FedGuard linear,False,0.0000
+194,FedGuard quadrature,False,0.0000
+194,FedGuard linear + R4,False,0.0000
+194,FedGuard quadrature + R4,False,0.0000
+195,AutoGM (lambda x1),True,0.0000
+195,AutoGM (lambda x4),True,0.0000
+195,FedGuard linear,True,0.0000
+195,FedGuard quadrature,True,0.0000
+195,FedGuard linear + R4,False,0.0000
+195,FedGuard quadrature + R4,False,0.0000
+196,AutoGM (lambda x1),True,0.0000
+196,AutoGM (lambda x4),True,0.0000
+196,FedGuard linear,False,0.0000
+196,FedGuard quadrature,False,0.0000
+196,FedGuard linear + R4,False,0.0000
+196,FedGuard quadrature + R4,False,0.0000
+197,AutoGM (lambda x1),True,0.0000
+197,AutoGM (lambda x4),True,0.0000
+197,FedGuard linear,False,0.0000
+197,FedGuard quadrature,True,0.0000
+197,FedGuard linear + R4,False,0.0000
+197,FedGuard quadrature + R4,False,0.0000
+198,AutoGM (lambda x1),True,0.0000
+198,AutoGM (lambda x4),True,0.0000
+198,FedGuard linear,False,0.0000
+198,FedGuard quadrature,False,0.0000
+198,FedGuard linear + R4,False,0.0000
+198,FedGuard quadrature + R4,False,0.0000
+199,AutoGM (lambda x1),True,0.0000
+199,AutoGM (lambda x4),True,0.0000
+199,FedGuard linear,True,0.0000
+199,FedGuard quadrature,True,0.0000
+199,FedGuard linear + R4,False,0.0000
+199,FedGuard quadrature + R4,False,0.0000

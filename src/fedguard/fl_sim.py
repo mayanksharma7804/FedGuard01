@@ -169,9 +169,15 @@ class FLSimulation:
                            "hrr": honest_rejection_rate(w, self.is_attacker),
                            "attacker_share": attacker_weight_share(w, self.is_attacker)})
             for c, o, wi, xi in zip(self.clients, outs, w, X):
-                weights_log.append({"round": rnd, "client": c.cid, "weight": float(wi), "n": c.n,
-                                    "is_attacker": c.is_attacker, "delta_norm": float(np.linalg.norm(xi)),
-                                    "client_loss": o["loss"], "declared_radius": float(r[c.cid])})
+                row = {"round": rnd, "client": c.cid, "weight": float(wi), "n": c.n,
+                       "is_attacker": c.is_attacker, "delta_norm": float(np.linalg.norm(xi)),
+                       "client_loss": o["loss"], "declared_radius": float(r[c.cid])}
+                for key in ("dist", "r_eff", "residual", "excess"):          # robust aggregators' diagnostics
+                    if key in info:
+                        row[key] = float(info[key][c.cid])
+                if "s" in info:
+                    row["allowance_s"] = float(info["s"])
+                weights_log.append(row)
             self.log(f"  round {rnd:3d}/{f['max_rounds']}  client loss {rounds[-1]['client_loss_mean']:.4f}  "
                      f"val macro-F1 {val['macro_f1']:.4f}  best {best['f1']:.4f} (round {best['round']})  "
                      f"patience {bad}/{f['patience']}{'  *new best' if improved else ''}  ({train_s:.1f}s)"

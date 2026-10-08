@@ -46,6 +46,8 @@ It is updated after every phase.
 | [F36](#f36) | 5 | With one shared epsilon every client gets almost the same noise radius, whatever its size; FedGuard's idea needs a mixed-privacy scenario | Method |
 | [F37](#f37) | 6 (prep) | Our AutoGM matches the Blades benchmark's AutoGM (AutoGM's first author) to 1e-11 on identical inputs | Verification |
 | [F38](#f38) | 5 | **B2: privacy is very costly here - macro-F1 0.51 (no DP) -> 0.25 (eps 8) -> 0.22 (eps 3) -> 0.18 (eps 1)**; rare attack classes vanish, attack-vs-benign detection mostly survives | Result |
+| [F39](#f39) | 6 | **AutoGM under DP has no good lambda: small lambda collapses onto one client (HRR 0.90), large lambda lets sign-flip attackers keep ~32% of the weight**; lambda_scale = 4 chosen | Result |
+| [F40](#f40) | 6 | Fast plan (team request): fewer attacker fractions, seeds and epsilon levels; ~2-2.5 days of GPU instead of ~6 | Decision |
 
 ---
 
@@ -416,4 +418,36 @@ It is updated after every phase.
   - Why so costly: noise dominates every update (radius ~13-15 per round vs a clean update of ~1.5, F35), and rare classes have only tens to hundreds of rows per client, so their gradient signal is the first to drown (clipping also caps their large per-example gradients, F30). This matches F33's signal-to-noise argument (few rows per client, 40k parameters).
 - **Evidence:** `results/b2_dpfedavg/summary_by_epsilon.csv`, `per_class_recall_by_epsilon.csv`, figures `results/figures/b2_dpfedavg_by_epsilon.png`, `b2_dpfedavg_rounds.png`, `b2_dpfedavg_per_class_recall.png`, `results/master.csv`.
 - **Decision / impact:** Reported as it is - the honest cost of record-level DP with small clients. No "noise as a regulariser" effect (plan expert tip): stronger privacy was never better here. For Phases 6-8 this sets the bar: with DP on, the robust aggregators are compared on a model that mainly separates benign / Exploits / Fuzzers, so **attack-vs-benign metrics (binary F1, benign FPR) and macro-F1 must both be reported**. Option for the report's future work: larger clients, a smaller model, or client-level DP would raise utility.
+
+---
+
+## Phase 6 - Attacks, AutoGM (B3, B4) and the O2 conflict study
+
+### F39
+**Under DP noise AutoGM has no good lambda: small lambda collapses onto a single client, large lambda lets sign-flip attackers keep about a third of the weight. lambda_scale = 4 chosen on validation.**
+- **What we did:** AutoGM with lambda = lambda_scale x median client distance, lambda_scale in {0.5, 1, 2, 4, 8} (8 added after 0.5-2 collapsed), K = 10, alpha 0.5, epsilon 3 (C = 2), seed 42, without attack and with 30% sign-flip attackers (smart: they run DP-SGD and declare a normal sigma); judged on **validation** macro-F1 averaged over both scenarios.
+- **What we found:**
+
+  | lambda_scale | no attack: HRR | no attack: val macro-F1 | sign flip: attackers' weight | sign flip: val macro-F1 | mean val |
+  |---|---|---|---|---|---|
+  | 0.5 | **0.90** | 0.048 | 0.00 | 0.048 | 0.048 |
+  | 1 | **0.90** | 0.048 | 0.015 | 0.048 | 0.048 |
+  | 2 | 0.10 | 0.200 | **0.365** | 0.057 | 0.128 |
+  | **4** | 0.00 | **0.207** | **0.325** | 0.148 | **0.178** |
+  | 8 | 0.00 | 0.204 | 0.310 | 0.144 | 0.174 |
+
+  - **Collapse:** with lambda <= 1x the median distance, AutoGM gives one client weight 1 in every round (weights one-hot, the centre = that client's update). This is the true optimum of AutoGM's objective once lambda is small compared with the distances: the chosen point has distance 0, so it takes all the weight, and the choice reinforces itself. Under DP each update is ~90% noise (length ~13, F35), so the global model receives one client's full noise each round and degenerates (benign FPR 0.999 - everything flagged as an attack). Checked by replaying one round offline: weights [0,0,0,0,1,0,0,0,0,0], centre distance to that client 0.
+  - **Attackers get in:** with lambda >= 2x, AutoGM spreads the weight, but the three sign-flip attackers keep 31-37% of it (their fair share is 30%). A sign-flipped DP update is as far from the centre as an honest one: its extra displacement (~2x the signal, length ~1-1.5) is tiny next to the noise radius (~13) and next to the +/-10% spread of radii between honest clients.
+  - This is the paper's dilemma (Gap 1) measured on real IDS training: no lambda both keeps honest DP clients and excludes attackers. The 4x setting is AutoGM at its best and is used for B3, B4, E4 and E5.
+- **Evidence:** `results/runs/p6_autogm_lambda_*` (not committed), `results/master.csv` rows `p6_autogm_lambda`, `python scripts/compare_runs.py --glob "p6_autogm_lambda_*"`.
+- **Decision / impact:** AutoGM lambda_scale = **4** frozen. A quick synthetic check at the same scale (d = 40,266, radii 12.3-14.6, signal ~1) suggests FedGuard will help only partly at epsilon 3 (attackers' share 0.22 instead of 0.29): per round, the attacker's extra squared distance (~4|s|^2) is only 2-3x the noise-length wobble. Phase 7 measures this on real data; it may define FedGuard's breaking point.
+
+### F40
+**Fast plan: at the team's request the remaining experiments were cut from ~340 runs (~6 days of GPU) to ~140 runs (~2-2.5 days).**
+- **What we did:** Measured cost: a 40-round DP run ~55 min, a plain run ~20 min, 2 in parallel (the GPU is at 93-96% and 86 C with two; a third does not add throughput). The full Phase 6-8 matrix needed ~145 GPU hours.
+- **Decision / impact (deviations from the plan, to be stated in the report):**
+  - **E5 main table:** 4 methods x 3 attacks x **30% attackers only** x 3 seeds (plan: 10/20/30/40%); the attacker-ratio curve uses sign flip at 10/20/40% with seed 42 only.
+  - **E4 conflict:** epsilon {inf, 3, 1, **mixed 1-3-8**} x alpha {0.1, 0.5, 100} x **2 seeds** (plan: epsilon {inf, 8, 3, 1} x 3 seeds). Epsilon 8 dropped because B2 showed it behaves like epsilon 3 (F38); the mixed-privacy column is added (F36).
+  - **B3 (AutoGM without DP):** seed 42 only. **E6/E7:** reduced (one change at a time; stress at epsilon 8 and 1). **E8 (CICIoT2023, optional):** dropped - future work.
+  - All K = 10 experiments share one run name (`k10`), so a configuration that belongs to several experiments is trained once; `run_experiments.py --sweep a.yaml b.yaml ...` runs several sweeps as one de-duplicated queue.
 

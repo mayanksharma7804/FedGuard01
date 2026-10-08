@@ -1,0 +1,8 @@
+# Phase 6: B3 = AutoGM WITHOUT DP under the attacks (seed 42 only, fast plan).
+base: configs/k10_base.yaml
+set:
+  dp: {epsilon: null}
+  fl: {aggregator: {name: autogm, lam_scale: 4.0, outer: 20}}
+grid:
+  attack: [{type: none, fraction: 0.0}, {type: label_flip, fraction: 0.3}, {type: sign_flip, fraction: 0.3},
+           {type: gaussian, fraction: 0.3}]

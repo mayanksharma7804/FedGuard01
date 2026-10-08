@@ -2,6 +2,8 @@
 
     python scripts/make_plots.py --b1          # Phase 4: FedAvg vs non-IID level, vs the B0 ceiling
     python scripts/make_plots.py --b2          # Phase 5: DP-FedAvg, macro-F1 vs epsilon
+    python scripts/make_plots.py --attacks     # Phase 6: attacks vs FedAvg / DP-FedAvg / AutoGM (+ FedGuard later)
+    python scripts/make_plots.py --e4          # Phase 6: O2 conflict heatmaps (HRR, macro-F1) over epsilon x alpha
 
 More experiment groups are added here phase by phase. Every figure is made by code (plan rule: no
 hand-made Excel charts).
@@ -149,8 +151,74 @@ def b2(master):
     print("figures -> results/figures/b2_dpfedavg_*.png, tables -> results/b2_dpfedavg/")
 
 
+def method_label(row):
+    dp = "no DP" if pd.isna(row["epsilon"]) else f"DP eps {row['epsilon']}"
+    return f"{ {'fedavg': 'FedAvg', 'autogm': 'AutoGM', 'fedguard': 'FedGuard'}[row['aggregator']] } ({dp})"
+
+
+ATTACK_ORDER = ["none", "label_flip", "sign_flip", "gaussian"]
+
+
+def attacks(master, name="p6_attacks"):
+    df = master[master["name"] == name].copy()
+    if df.empty:
+        print(f"no {name} runs yet"); return
+    out = RES / name; out.mkdir(parents=True, exist_ok=True)
+    df["method"] = df.apply(method_label, axis=1)
+    keys = ["test_macro_f1", "test_binary_f1", "test_benign_fpr", "test_attack_detection_rate", "hrr_mean",
+            "attacker_share_mean"]
+    table = df.groupby(["method", "attack", "attack_fraction"])[keys].agg(["mean", "std", "count"])
+    table.to_csv(out / "summary.csv", float_format="%.4f")
+    print(df.groupby(["method", "attack"])[["test_macro_f1", "test_binary_f1", "hrr_mean", "attacker_share_mean"]]
+          .mean().round(3).to_string())
+    methods = sorted(df["method"].unique())
+    att = [a for a in ATTACK_ORDER if a in set(df["attack"])]
+    colors = ["#1F3A5F", "#6D597A", "#E9A23B", "#E76F51", "#2A9D8F", "#8D99AE"]
+    fig, axes = plt.subplots(1, 3, figsize=(15, 3.8))
+    for ax, (metric, label) in zip(axes, [("test_macro_f1", "test macro-F1"), ("test_binary_f1", "test binary F1"),
+                                          ("attacker_share_mean", "attackers' weight share (mean over rounds)")]):
+        w = 0.8 / len(methods); x = np.arange(len(att))
+        for i, (mth, c) in enumerate(zip(methods, colors)):
+            vals = [df[(df.method == mth) & (df.attack == a)][metric].mean() for a in att]
+            ax.bar(x + (i - (len(methods) - 1) / 2) * w, vals, w, color=c, label=mth)
+        ax.set_xticks(x); ax.set_xticklabels(att); ax.set_ylabel(label); ax.grid(axis="y", color="#eee")
+    axes[0].legend(frameon=False, fontsize=7)
+    fig.suptitle(f"Attacks ({df.attack_fraction.max():g} of clients) vs aggregators - K = {df.clients.iloc[0]}, "
+                 f"alpha = {df.alpha.iloc[0]:g}", fontsize=10)
+    fig.tight_layout(); fig.savefig(FIG / f"{name}.png", dpi=150); plt.close(fig)
+    print(f"figure -> results/figures/{name}.png, table -> results/{name}/summary.csv")
+
+
+def e4(master, name="e4_conflict"):
+    df = master[(master["name"] == name) & (master["attack"] == "none")].copy()
+    if df.empty:
+        print(f"no {name} runs yet"); return
+    out = RES / name; out.mkdir(parents=True, exist_ok=True)
+    df["eps"] = df["epsilon"].fillna("inf").astype(str)
+    eps_order = [e for e in ["inf", "8.0", "3.0", "1.0", "mix:1-3-8"] if e in set(df["eps"])]
+    for agg, g in df.groupby("aggregator"):
+        piv = {m: g.pivot_table(index="alpha", columns="eps", values=m, aggfunc="mean").reindex(columns=eps_order)
+               for m in ("hrr_mean", "test_macro_f1")}
+        for m, t in piv.items():
+            t.to_csv(out / f"{agg}_{m}.csv", float_format="%.4f")
+        fig, axes = plt.subplots(1, 2, figsize=(11, 3.6))
+        for ax, (m, t), cmap, lab in zip(axes, piv.items(), ["Reds", "Blues"], ["HRR (honest clients rejected)", "test macro-F1"]):
+            im = ax.imshow(t.values, cmap=cmap, vmin=0, vmax=1 if m == "hrr_mean" else max(0.65, np.nanmax(t.values)))
+            for (i, j), v in np.ndenumerate(t.values):
+                ax.text(j, i, "-" if np.isnan(v) else f"{v:.2f}", ha="center", va="center", fontsize=9)
+            ax.set_xticks(range(len(t.columns))); ax.set_xticklabels([f"eps {c}" for c in t.columns], fontsize=8)
+            ax.set_yticks(range(len(t.index))); ax.set_yticklabels([f"alpha {a:g}" for a in t.index])
+            ax.set_title(lab, fontsize=10); fig.colorbar(im, ax=ax, fraction=0.046)
+        fig.suptitle(f"O2 conflict (no attackers): {agg}, K = {g.clients.iloc[0]}, mean over seeds", fontsize=10)
+        fig.tight_layout(); fig.savefig(FIG / f"{name}_{agg}.png", dpi=150); plt.close(fig)
+        print(f"{agg}: HRR"); print(piv["hrr_mean"].round(3).to_string())
+        print("macro-F1"); print(piv["test_macro_f1"].round(3).to_string())
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--attacks", action="store_true")
+    ap.add_argument("--e4", action="store_true")
     ap.add_argument("--b1", action="store_true")
     ap.add_argument("--b2", action="store_true")
     args = ap.parse_args()
@@ -159,6 +227,10 @@ def main():
         b1(master)
     if args.b2:
         b2(master)
+    if args.attacks:
+        attacks(master)
+    if args.e4:
+        e4(master)
 
 
 if __name__ == "__main__":

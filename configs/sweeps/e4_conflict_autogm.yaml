@@ -1,0 +1,9 @@
+# E4 / O2 conflict: honest clients only (no attackers) - how often does AutoGM reject honest DP clients?
+# Fast plan: epsilon {inf, 3, 1, mixed 1-3-8} x alpha {0.1, 0.5, 100} x seeds {42, 43} (Findings F40).
+base: configs/k10_base.yaml
+set:
+  fl: {aggregator: {name: autogm, lam_scale: 4.0, outer: 20}}
+grid:
+  seed: [42, 43]
+  fl.alpha: [0.5, 0.1, 100]
+  dp.epsilon: [3.0, null, 1.0, [1.0, 3.0, 8.0]]

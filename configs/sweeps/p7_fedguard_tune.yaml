@@ -1,0 +1,11 @@
+# Phase 7 (VALIDATION only): FedGuard mode x R4, with and without 30% sign-flip attackers.
+# K = 10, alpha 0.5, epsilon 3, seed 42; k_mad = 2 and lam_scale = 1 as in the guide (E6 varies them).
+base: configs/k10_base.yaml
+set:
+  name: p7_fedguard_tune
+grid:
+  fl.aggregator: [{name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20},
+                  {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20},
+                  {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0},
+                  {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0}]
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]
