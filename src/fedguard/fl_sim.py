@@ -9,9 +9,11 @@ Each round:
 At the end the best global model is evaluated once on the TEST split - same protocol as B0.
 """
 import copy
+import os
 import time
 import zlib
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -23,6 +25,10 @@ from fedguard.aggregators import get_aggregator
 from fedguard.metrics import attacker_weight_share, honest_rejection_rate
 from fedguard.model import build_model
 from fedguard.train import class_weights, evaluate, make_loader, make_optimizer, train_epoch
+
+
+class PauseRequested(Exception):
+    """Raised after a round's checkpoint is saved when a pause was requested (safe to stop the machine)."""
 
 
 @dataclass
@@ -138,13 +144,27 @@ class FLSimulation:
                 "sigma_per_client": [c.meta["sigma"] for c in self.clients], "clip": self.clients[0].meta["C"],
                 "rounds_budget": self.cfg["fl"]["max_rounds"]}
 
-    def run(self):
+    def run(self, checkpoint=None, should_pause=None):
+        """checkpoint: path of a per-round checkpoint; if it exists the run resumes after its last round.
+        Every round is deterministic given the global model (seeds per round/client), so a resumed run gives
+        the same result as an uninterrupted one. should_pause(): checked after each saved round."""
         f, t = self.cfg["fl"], self.cfg["train"]
         g = flat(self.global_model)
         best = {"f1": -1.0, "round": 0, "vec": g.clone()}
-        bad, rounds, weights_log = 0, [], []
-        t_start = time.perf_counter()
-        for rnd in range(1, f["max_rounds"] + 1):
+        bad, rounds, weights_log, start = 0, [], [], 1
+        prev_seconds = 0.0
+        if checkpoint is not None and Path(checkpoint).exists():
+            ck = torch.load(checkpoint, map_location=g.device, weights_only=False)
+            g, best, bad = ck["g"].to(g.device), ck["best"], ck["bad"]
+            best["vec"] = best["vec"].to(g.device)
+            rounds, weights_log, start, prev_seconds = ck["rounds"], ck["weights_log"], ck["round"] + 1, ck["seconds"]
+            set_flat(self.global_model, g)
+            self.log(f"  resumed from checkpoint after round {ck['round']} (best {best['f1']:.4f} at round {best['round']})")
+        t_start = time.perf_counter() - prev_seconds
+        stopped = bool(rounds) and bad >= f["patience"] and len(rounds) >= f["min_rounds"]
+        for rnd in range(start, f["max_rounds"] + 1):
+            if stopped:
+                break
             t0 = time.perf_counter()
             outs = [self.local_train(c, g, rnd) for c in self.clients]
             X = torch.stack([o["delta"] for o in outs]).cpu().numpy()
@@ -185,7 +205,15 @@ class FLSimulation:
                      + (f" attacker share {rounds[-1]['attacker_share']:.2f}" if self.attack != "none" else ""))
             if bad >= f["patience"] and rnd >= f["min_rounds"]:
                 self.log(f"  early stop at round {rnd} (best round {best['round']}, val macro-F1 {best['f1']:.4f})")
-                break
+                stopped = True
+            if checkpoint is not None:
+                tmp = Path(str(checkpoint) + ".tmp")
+                torch.save({"g": g, "best": best, "bad": bad, "rounds": rounds, "weights_log": weights_log,
+                            "round": rnd, "seconds": time.perf_counter() - t_start}, tmp)
+                os.replace(tmp, checkpoint)                    # atomic: never a half-written checkpoint
+            if not stopped and should_pause is not None and should_pause():
+                self.log(f"  PAUSED after round {rnd} (checkpoint saved; the run resumes from here)")
+                raise PauseRequested(rnd)
 
         set_flat(self.global_model, best["vec"])
         info = {"best_round": best["round"], "rounds_run": len(rounds), "best_val_macro_f1": best["f1"],

@@ -115,3 +115,31 @@ def test_sweep_expansion_names_and_shards(tmp_path):
     assert len(cfgs[0::2]) + len(cfgs[1::2]) == 6                    # two shards cover everything
     dp_cfg = runner.load_config("configs/b2_dpfedavg.yaml")
     assert "_eps3_c2_s42_" in runner.run_name(dp_cfg)               # DP runs carry epsilon and clip
+
+
+@pytest.mark.parametrize("dp", [None, {"epsilon": 3.0, "clip": 1.0}], ids=["noDP", "DP"])
+def test_pause_and_resume_from_checkpoint_gives_the_same_run(tmp_path, dp):
+    from fedguard.fl_sim import PauseRequested
+
+    def sim(**kw):
+        s = globals()["sim"](**kw)
+        if dp:
+            s2 = FLSimulation({**s.cfg, "dp": dp}, s.data, [c.idx for c in s.clients], torch.device("cpu"),
+                              log=lambda *a: None)
+            return s2
+        return s
+    full = sim(seed=7, max_rounds=5, min_rounds=5, patience=10)
+    v_full = flat(full.run()[0])
+    ck = tmp_path / "checkpoint.pt"
+    calls = {"n": 0}
+    def pause_after_two():
+        calls["n"] += 1
+        return calls["n"] == 2
+    first = sim(seed=7, max_rounds=5, min_rounds=5, patience=10)
+    with pytest.raises(PauseRequested):
+        first.run(checkpoint=ck, should_pause=pause_after_two)
+    assert ck.exists()
+    second = sim(seed=7, max_rounds=5, min_rounds=5, patience=10)      # a fresh process after the pause
+    model, rounds, wlog, info = second.run(checkpoint=ck)
+    assert [r["round"] for r in rounds] == [1, 2, 3, 4, 5] and info["rounds_run"] == 5
+    assert torch.equal(flat(model), v_full)                             # identical to the uninterrupted run

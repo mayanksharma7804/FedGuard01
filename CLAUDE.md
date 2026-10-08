@@ -73,6 +73,9 @@ Update this line at the start of every phase: Phase 6 - attacks, AutoGM (B3/B4),
 - B1 (test macro-F1): alpha 100 0.603, alpha 0.5 0.537 +/- 0.076, alpha 0.1 0.435 (F29). Seed spread at alpha 0.5
   is large -> always compare methods on the same partitions (paired).
 - Never run Flower SuperNodes next to training jobs (RAM, F25). Flower parity = 6.9e-17 (F26).
+- Pause safely: create results/runs/PAUSE -> every sweep saves after its current round and exits ("PAUSED" in the
+  log); delete it and restart the same sweep command to continue. Runs resume from results/runs/<run>/checkpoint.pt.
+- Several sweeps as one queue: run_experiments.py --sweep a.yaml b.yaml ... --shard i/2 (duplicates run once).
 - Smoke check after big changes: `python scripts/run_experiments.py --sweep configs/sweeps/smoke.yaml --force`.
 
 ## DP facts (Phase 5)

@@ -48,6 +48,7 @@ It is updated after every phase.
 | [F38](#f38) | 5 | **B2: privacy is very costly here - macro-F1 0.51 (no DP) -> 0.25 (eps 8) -> 0.22 (eps 3) -> 0.18 (eps 1)**; rare attack classes vanish, attack-vs-benign detection mostly survives | Result |
 | [F39](#f39) | 6 | **AutoGM under DP has no good lambda: small lambda collapses onto one client (HRR 0.90), large lambda lets sign-flip attackers keep ~32% of the weight**; lambda_scale = 4 chosen | Result |
 | [F40](#f40) | 6 | Fast plan (team request): fewer attacker fractions, seeds and epsilon levels; ~2-2.5 days of GPU instead of ~6 | Decision |
+| [F41](#f41) | 6 | A charger connect/disconnect burst made the NVIDIA driver fail; both trainings hung silently for ~3 h 50 min; watchdog added | Measurement |
 
 ---
 
@@ -450,4 +451,10 @@ It is updated after every phase.
   - **E4 conflict:** epsilon {inf, 3, 1, **mixed 1-3-8**} x alpha {0.1, 0.5, 100} x **2 seeds** (plan: epsilon {inf, 8, 3, 1} x 3 seeds). Epsilon 8 dropped because B2 showed it behaves like epsilon 3 (F38); the mixed-privacy column is added (F36).
   - **B3 (AutoGM without DP):** seed 42 only. **E6/E7:** reduced (one change at a time; stress at epsilon 8 and 1). **E8 (CICIoT2023, optional):** dropped - future work.
   - All K = 10 experiments share one run name (`k10`), so a configuration that belongs to several experiments is trained once; `run_experiments.py --sweep a.yaml b.yaml ...` runs several sweeps as one de-duplicated queue.
+
+### F41
+**A burst of AC-power changes made the NVIDIA driver fail; both training jobs hung silently for about 3 h 50 min.**
+- **What we did:** The run logs stopped at 19:03 while both Python processes stayed alive (still using CPU, GPU shown at 100%). Checked the Windows System event log.
+- **What we found:** At 19:04 Windows logged **8 power-source changes in 14 seconds** (Kernel-Power event 105 - charger connecting/disconnecting, e.g. a loose plug), immediately followed by a continuous flood of NVIDIA driver errors (`nvlddmkm` event 13, **25,000 events** by 22:51). The CUDA calls of both jobs never returned, so nothing crashed and no error reached the logs.
+- **Decision / impact:** Killed the hung jobs; a CUDA test and a DP smoke round worked again; the queue was restarted (finished runs are skipped, only the 2 interrupted runs restart). Added a **watchdog**: if a shard log is not updated for 12 minutes (a round normally logs every 30-80 s), it alerts so the job can be restarted. Also added **per-round checkpoints** (`results/runs/<run>/checkpoint.pt`, written atomically; a stopped or crashed run resumes from its last round and gives a bit-identical result - tested with and without DP) and a **clean pause**: creating `results/runs/PAUSE` makes every sweep stop after its current round, so the laptop can be closed safely; deleting it and restarting the sweep continues. Team: keep the charger firmly connected, disable sleep on AC, and reboot when possible to clear the driver state. Lesson: on a laptop, long GPU jobs need a stall detector and checkpoints, not just crash handling.
 

@@ -29,12 +29,17 @@ import yaml
 
 from fedguard.config import config_hash, get_dotted, load_config, save_config, set_dotted
 from fedguard.data import load_processed
-from fedguard.fl_sim import FLSimulation
+from fedguard.fl_sim import FLSimulation, PauseRequested
 from fedguard.partition import load_partition, partition_path
 from fedguard.train import evaluate, get_device
 from fedguard.utils import REPO_ROOT, set_seed
 
 RUNS = REPO_ROOT / "results" / "runs"
+PAUSE = RUNS / "PAUSE"          # create this file to pause every running sweep at the next round boundary
+
+
+def pause_requested() -> bool:
+    return PAUSE.exists()
 
 
 def parse_value(text):
@@ -88,7 +93,8 @@ def run_one(cfg, force=False):
         print(f"[skip] {run_dir.name} already finished")
         return run_dir
     run_dir.mkdir(parents=True, exist_ok=True)
-    live = open(run_dir / "train.log", "w", encoding="utf8", buffering=1)
+    ckpt = run_dir / "checkpoint.pt"
+    live = open(run_dir / "train.log", "a" if ckpt.exists() else "w", encoding="utf8", buffering=1)
 
     def log(msg):
         print(msg, flush=True)
@@ -112,7 +118,11 @@ def run_one(cfg, force=False):
         for c in sim.clients:
             log(f"    client {c.cid}: n={c.n:6d}  eps={c.meta['target_epsilon']:g}  T={c.meta['T']:4d}/round  sigma={c.meta['sigma']:.3f}  "
                 f"delta={c.meta['delta']:.2e}  declared radius={sim.noise_radius(c.meta):.4f}")
-    model, rounds, weights_log, info = sim.run()
+    try:
+        model, rounds, weights_log, info = sim.run(checkpoint=ckpt, should_pause=pause_requested)
+    except PauseRequested:
+        live.close()
+        raise
     eb = cfg["train"]["eval_batch"]
     val = evaluate(model, data.X_va, data.y_va, data.classes, device, eb)
     test = evaluate(model, data.X_te, data.y_te, data.classes, device, eb)
@@ -125,6 +135,7 @@ def run_one(cfg, force=False):
                "finished": time.strftime("%Y-%m-%d %H:%M:%S"), "config_hash": config_hash(cfg)},
               open(run_dir / "meta.json", "w"), indent=2)
     json.dump(test, open(run_dir / "metrics_test.json", "w"), indent=2)   # written last = "finished"
+    ckpt.unlink(missing_ok=True)
     if sim.dp:
         log(f"      privacy: eps spent (max over clients) {info['epsilon_spent_max']:.3f} after {info['rounds_run']} rounds"
             f" (target {info['epsilon_target']:g} for {info['rounds_budget']})")
@@ -166,8 +177,16 @@ def main():
         if args.dry_run:
             done = (RUNS / run_name(cfg) / "metrics_test.json").exists()
             print(("  [done] " if done else "  [todo] ") + run_name(cfg))
-        else:
+            continue
+        if pause_requested():
+            print(f"PAUSED (before {run_name(cfg)}): delete {PAUSE} and start the sweep again to continue", flush=True)
+            return
+        try:
             run_one(cfg, args.force)
+        except PauseRequested:
+            print(f"PAUSED inside {run_name(cfg)}: checkpoint saved. Delete {PAUSE} and start the sweep again "
+                  f"to continue from the same round.", flush=True)
+            return
 
 
 if __name__ == "__main__":
