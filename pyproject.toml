@@ -14,3 +14,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    "ignore:Secure RNG turned off:UserWarning",          # Opacus: fine for research runs
+    "ignore:Full backward hook is firing:UserWarning",   # Opacus hooks on the first layer (input has no grad)
+]

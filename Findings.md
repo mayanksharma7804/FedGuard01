@@ -4,7 +4,7 @@ Every finding of the project, in the order we found it: **what we did, what we f
 and what we decided**. This file feeds the report (Methodology, Results, Limitations) and the viva.
 It is updated after every phase.
 
-**Status:** Phases 1-3 complete (last updated 7 Oct 2026).
+**Status:** Phases 1-4 complete (last updated 8 Oct 2026).
 
 | ID | Phase | Finding (one line) | Type |
 |---|---|---|---|
@@ -31,6 +31,12 @@ It is updated after every phase.
 | [F21](#f21) | 3 | Long parallel runs heat the laptop (GPU 86 C) and slow epochs up to ~3x | Measurement |
 | [F22](#f22) | 3 | **B0 ceiling: test macro-F1 0.597 +/- 0.004**, binary F1 0.912, benign FPR 0.068 | Result |
 | [F23](#f23) | 3 | Exploits absorbs most rare-attack errors; 47% of Analysis attacks are missed as Benign | Result |
+| [F24](#f24) | 4 | **Critical engine bug caught by the Flower parity check: clients were trained one after another, not with FedAvg** | Bug |
+| [F25](#f25) | 4 | 5 local Flower SuperNodes + 2 training jobs ran the laptop out of RAM and killed both jobs | Measurement |
+| [F26](#f26) | 4 | After the fix, our engine and Flower agree to 1e-16 over 5 rounds | Verification |
+| [F27](#f27) | 4 | 5 local epochs per round beats 1 or 2 at equal compute and needs ~45 rounds instead of ~170 | Method |
+| [F28](#f28) | 4 | Non-IID FedAvg curves have deep temporary dips; patience 8 stopped runs early, so B1 was re-run with patience 15 | Method |
+| [F29](#f29) | 4 | **B1: FedAvg matches B0 with IID clients (0.603) but loses 0.06 at alpha 0.5 and 0.16 at alpha 0.1**; rare classes held by one small client disappear | Result |
 
 ---
 
@@ -214,3 +220,65 @@ It is updated after every phase.
 - **What we did:** Studied the row-normalised confusion matrix (test, 3 seeds summed).
 - **What we found:** Predicted as **Exploits**: Worms **70%**, DoS **49%**, Reconnaissance **31%**, Backdoor **28%**, Generic **24%**. Shellcode goes mostly to Fuzzers (**40%**). The most dangerous error: **47% of Analysis** and **21% of Backdoor** test rows are predicted **Benign** (the attack is missed entirely). Benign itself leaks 4% to Fuzzers and 2% to Exploits (the 0.068 FPR).
 - **Decision / impact:** Most multi-class errors are attack-vs-attack (still flagged), matching the Recon/Exploits label conflicts in the data (F10). In the report, discuss Analysis/Backdoor-to-Benign as the real security risk. In later phases, track per-class recall of Analysis, Backdoor and DoS: robust aggregation may hurt exactly these rare classes (paper Gap 3).
+
+---
+
+## Phase 4 - Federated engine and FedAvg (B1)
+
+### F24
+**The Flower parity check caught a critical bug: our engine trained the clients one after another instead of doing FedAvg.**
+- **What we did:** Ran the same FedAvg config (5 clients, alpha 0.5, 5 rounds, CPU) through Flower (1 SuperLink + 5 SuperNodes, our `AggregatorStrategy`) and through our engine `fl_sim.py`, and compared validation macro-F1 round by round.
+- **What we found:** Mismatch of up to **0.084**. Replaying the Flower path inside one process isolated the cause: `set_flat()` used PyTorch's `vector_to_parameters`, which makes the model's parameters *views* of the global vector. Training a client therefore modified the global model in place, every client's delta came out as **zero**, and each client simply continued from where the previous one stopped - sequential training, not federated averaging. The 1-client exactness test could not see it (with one client both are identical). The buggy engine even "learned" faster (val macro-F1 0.19 vs 0.10 after 5 rounds), which made the bug look like good behaviour.
+- **Decision / impact:** `set_flat` now **copies** values into the parameters. Two regression tests added: a client never modifies the global vector, and with 3 clients round 1 equals the weighted mean of 3 independently trained local models. All runs made with the buggy engine (one smoke run and the first local-epoch selection runs) were moved to `results/runs/_invalid_engine_bug_F24/` and repeated. **Lesson for the report:** cross-checking against an independent implementation (Flower) is what exposed a bug that unit tests and plausible-looking learning curves had hidden.
+
+### F25
+**Running 5 Flower SuperNodes on the laptop while 2 trainings were running exhausted the 16 GB of RAM.**
+- **What we did:** Started the parity check (SuperLink + 5 SuperNodes, each spawning its own Python + PyTorch process) while two selection runs were training.
+- **What we found:** Both training runs crashed with `numpy._ArrayMemoryError: Unable to allocate 2.75 MiB`; each Flower node process loads PyTorch and the dataset separately.
+- **Decision / impact:** Never run Flower checks next to training jobs. For the live demo, prefer the multi-laptop setup; on one laptop keep it to a few SuperNodes and nothing else running.
+
+### F26
+**After the fix, our engine and Flower produce the same FedAvg run to within 1e-16.**
+- **What we did:** Re-ran `scripts/windows/flower_parity.ps1` (Flower deployment mode, 5 SuperNodes, our `AggregatorStrategy`) and `scripts/compare_flower_parity.py` (our engine, same config, CPU).
+- **What we found:** Identical validation macro-F1 and accuracy in all 5 rounds; maximum difference **6.9e-17**. Technical detail: Opacus `DPLSTM`'s `state_dict()` lists each LSTM weight twice under two alias names (e.g. `lstm.weight_ih_l0` and `lstm.l0.ih.weight`), so the parameter vector is always built from `model.parameters()` after `load_state_dict`, never from the state_dict order.
+- **Evidence:** `results/flower_parity/parity_comparison.csv`.
+- **Decision / impact:** Experiments run in our fast engine; the paper's "implemented with Flower" claim is backed by this exact parity, and the same `AggregatorStrategy` will carry FedGuard in the Flower demo.
+
+### F27
+**Five local epochs per round give the best and most stable FedAvg, with ~45 rounds instead of ~170.**
+- **What we did:** FedAvg, 5 clients, alpha 0.5, seed 42, the same total training budget (~300 local epochs) split as E = 1, 2 or 5 local epochs per round (patience scaled to 30 local epochs); judged on the **validation** split.
+- **What we found:**
+
+  | E | best val macro-F1 | smoothed best | local epochs to best | minutes to best | rounds run |
+  |---|---|---|---|---|---|
+  | 1 | 0.542 | 0.511 | 171 | 14.7 | 201 |
+  | 2 | 0.535 | 0.520 | 230 | 19.7 | 130 |
+  | **5** | **0.548** | **0.546** | 215 | 15.7 | **49** |
+
+  All three reach a similar peak, but E = 5 is much less noisy round to round and needs about a quarter of the rounds.
+- **Decision / impact:** B1-B5 use **E = 5**, max 80 rounds, patience 8 rounds, min 10 rounds. This is also close to the 30-50 rounds the plan expected. For DP (Phase 5) it should help: the useful part of an update grows roughly with the number of local steps T, while the DP noise grows only with sqrt(T), so the per-round signal-to-noise ratio improves - good for telling honest noise from attacks. Risk to watch: more client drift under strong non-IID (alpha = 0.1).
+
+### F28
+**Under non-IID data, FedAvg's validation curve has deep temporary dips; patience 8 stopped runs in a dip, so B1 was re-run with patience 15.**
+- **What we did:** Ran B1 (FedAvg, E = 5, alpha {0.1, 0.5, 100} x seeds {42, 43, 44}) with patience 8 / max 80 rounds and inspected the learning curves before accepting the numbers.
+- **What we found:** First-pass test macro-F1 - alpha 0.1: 0.380 +/- 0.006 · alpha 0.5: 0.516 +/- **0.058** · alpha 100: 0.573 +/- 0.022. The large alpha 0.5 spread came partly from early stopping: seed 43's validation macro-F1 dropped to **0.187** in one round and was **recovering** (0.368 -> 0.444 -> 0.465) when patience ran out; seed 44 was still at its best when stopped; one alpha 100 run peaked at round 78 of 80. (Alpha 0.5 runs use different partitions per seed, so some spread is real.)
+- **Decision / impact:** Patience raised to **15 rounds**, max rounds to **120**, for all federated baselines; first-pass runs moved to `results/runs/_superseded_patience8_F28/` (kept for the record) and B1 re-run. Same lesson as F18: always check curves before trusting an early-stopped number. Final B1 numbers: see F29.
+
+### F29
+**B1 (final): federation itself costs nothing with IID clients, but non-IID data costs up to 0.16 macro-F1, and rare attack classes held by one small client disappear.**
+- **What we did:** FedAvg, 5 clients, E = 5, patience 15, max 120 rounds, alpha {0.1, 0.5, 100} x seeds {42, 43, 44} (each seed has its own Dirichlet partition); best round chosen on validation, test evaluated once. Compared with B0 (F22) and with the 91-93% reported by ref [1].
+- **What we found (test, mean +/- std over 3 seeds):**
+
+  | alpha | macro-F1 | gap to B0 | accuracy | binary F1 | benign FPR | detection | best round |
+  |---|---|---|---|---|---|---|---|
+  | 100 (IID) | **0.603 +/- 0.005** | +0.006 | 0.896 | 0.911 | 0.074 | 0.959 | 100 (86-110) |
+  | 0.5 | **0.537 +/- 0.076** | -0.060 | 0.888 | 0.906 | 0.057 | 0.921 | 53 (34-69) |
+  | 0.1 | **0.435 +/- 0.028** | -0.163 | 0.873 | 0.894 | 0.067 | 0.915 | 67 (40-90) |
+
+  - **IID:** FedAvg reaches the centralised ceiling (0.597 +/- 0.004); two of three runs used most of the 120-round budget, but their validation curves were flat (+/- 0.01) over the last 20 rounds.
+  - **alpha 0.5** has a large seed spread (0.573 / **0.450** / 0.588). Seed 43's partition gives one client 21.5k of the 45k rows, almost only Benign + Exploits; its curve rose slowly and plateaued at ~0.45-0.48 (it did not stop in a dip - checked).
+  - **alpha 0.1:** the binary view hardly changes (binary F1 0.894 vs 0.912 in B0) - the model still separates attack from benign - but **which** attack it is gets lost. Per-class recall (alpha 100 -> alpha 0.1) falls most for rare classes: Worms 0.30 -> 0.03, Backdoor 0.36 -> 0.13, DoS 0.36 -> 0.20, Generic 0.61 -> 0.29. Example (seed 42): a small client (2,971 rows, 6.6% FedAvg weight) holds 241 of the 247 Reconnaissance training rows, and Reconnaissance recall is **0**.
+  - **ref [1] (91-93%):** our accuracy is 0.87-0.90 and binary F1 0.89-0.91, a little below. Our data is de-duplicated (95.5% duplicates removed, F07/F13) and identifiers are dropped, which removes easy, memorisable rows, so the numbers are not directly comparable; macro-F1 over 10 classes is our main metric.
+- **Evidence:** `results/b1_fedavg/summary_by_alpha.csv`, `per_class_recall_by_alpha.csv`, `results/master.csv`, figures `results/figures/b1_fedavg_by_alpha.png`, `b1_fedavg_rounds.png`, `b1_fedavg_per_class_recall.png`. ~26 s per round, 30-50 minutes per run on the RTX 3050 (2 runs in parallel).
+- **Decision / impact:** B1 is the reference for every later federated experiment. Main experiments use **alpha 0.5** (the plan's setting); its large seed variance means differences between methods must be read against +/- 0.08, so every method always runs on the **same three partitions**, and paired (same-seed) comparisons will be reported. For the report: the loss under non-IID is a loss of rare classes (minority clients with unique classes are out-voted by sample-size weighting), not of attack detection as such.
+

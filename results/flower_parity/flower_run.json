@@ -1,0 +1,5 @@
+{
+  "rounds": 5,
+  "seed": 42,
+  "config": "configs/b1_fedavg.yaml"
+}

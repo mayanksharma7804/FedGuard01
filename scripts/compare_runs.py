@@ -26,8 +26,10 @@ def main():
         if not f.exists():
             print(f"[missing] {d.name}"); continue
         m = json.load(open(f))
-        rows[d.name] = {k: m[k] for k in ("macro_f1", "weighted_f1", "accuracy", "benign_fpr",
-                                          "attack_detection_rate", "best_epoch", "epochs_run")}
+        rows[d.name] = {k: m.get(k) for k in ("macro_f1", "weighted_f1", "accuracy", "benign_fpr",
+                                              "attack_detection_rate")}
+        rows[d.name]["best"] = m.get("best_epoch", m.get("best_round"))          # B0: epochs, FL: rounds
+        rows[d.name]["run_length"] = m.get("epochs_run", m.get("rounds_run"))
         per[d.name] = {c: v["recall"] for c, v in m["per_class"].items()}
     if not rows:
         return

@@ -1,0 +1,8 @@
+# Smoke sweep (plan 9.1, step 8): 2 rounds of 2 configs (no DP and DP), in a few minutes.
+# Run after every big change:  python scripts/run_experiments.py --sweep configs/sweeps/smoke.yaml --force
+base: configs/b2_dpfedavg.yaml
+set:
+  name: smoke
+  fl: {max_rounds: 2, min_rounds: 1, local_epochs: 1}
+grid:
+  dp.epsilon: [null, 3.0]

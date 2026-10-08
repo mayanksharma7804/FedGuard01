@@ -1,0 +1,27 @@
+# B2 - DP-FedAvg: every client trains with DP-SGD (Opacus), FedAvg on the server, no attack.
+# Same model / client settings as B1 (Findings F19, F27), plus DP. Phase 5 decisions: Findings F29+.
+name: b2_dpfedavg
+dataset: nf_unsw
+seed: 42
+model: {conv1: 32, conv2: 64, hidden: 64, dropout: 0.3}
+train:
+  lr: 0.2
+  batch_size: 256            # expected batch size (Opacus Poisson sampling)
+  class_weight: none
+  eval_batch: 4096
+  device: auto               # DP-SGD on the GPU (5x faster than CPU, F06)
+fl:
+  clients: 5
+  alpha: 0.5
+  local_epochs: 5
+  # max_rounds is ALSO the privacy budget: sigma is calibrated so that max_rounds rounds spend exactly
+  # epsilon. 40 rounds = the plan's DP compute budget (section 13.2); stopping early spends less.
+  max_rounds: 40
+  patience: 15
+  min_rounds: 10
+  aggregator: {name: fedavg}
+dp:
+  epsilon: 3.0               # null = no DP (epsilon = infinity)
+  delta: auto                # 1/N per client
+  clip: 1.0                  # per-example clipping norm C (chosen on validation, Findings F30)
+attack: {type: none, fraction: 0.0}

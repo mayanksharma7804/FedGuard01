@@ -1,0 +1,7 @@
+# E2 / B1: FedAvg, no DP, no attack, 5 clients - how much does federation + non-IID data cost vs B0?
+#   python scripts/run_experiments.py --sweep configs/sweeps/b1_fedavg.yaml --shard 0/2   (terminal 1)
+#   python scripts/run_experiments.py --sweep configs/sweeps/b1_fedavg.yaml --shard 1/2   (terminal 2)
+base: configs/b1_fedavg.yaml
+grid:
+  fl.alpha: [0.1, 0.5, 100]
+  seed: [42, 43, 44]

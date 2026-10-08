@@ -1,0 +1,7 @@
+# E3 / B2: DP-FedAvg, alpha = 0.5, 5 clients - how much does privacy cost? (eps = null means no DP)
+#   python scripts/run_experiments.py --sweep configs/sweeps/b2_dpfedavg.yaml --shard 0/2   (terminal 1)
+#   python scripts/run_experiments.py --sweep configs/sweeps/b2_dpfedavg.yaml --shard 1/2   (terminal 2)
+base: configs/b2_dpfedavg.yaml
+grid:
+  dp.epsilon: [null, 8.0, 3.0, 1.0]
+  seed: [42, 43, 44]

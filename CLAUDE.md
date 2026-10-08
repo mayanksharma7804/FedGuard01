@@ -26,7 +26,8 @@ displacement that noise + non-IID heterogeneity cannot explain (noise-aware Auto
 ## Machine
 Everything (coding, dataset, training, experiments) runs on ONE Windows laptop: RTX 3050 4 GB,
 16 GB RAM, driver 566.07. Repo: https://github.com/mayanksharma7804/FedGuard01 (branch main).
-Measured: ~15 min per 40-round DP run on the GPU (DP on CPU is ~5x slower - always use the GPU).
+Measured: non-DP FedAvg round (5 clients, E=5) ~26 s; DP round ~65 s with 2 jobs on the GPU -> ~45 min per
+40-round DP run. DP on CPU is ~5x slower - always use the GPU.
 
 ## Pinned versions (requirements.txt, made with uv pip compile --universal)
 Python 3.11.17, torch 2.14.1 (CUDA build from the cu126 index - there is no cu128 build), opacus 1.6.0,
@@ -48,7 +49,7 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 3 - centralised baseline DONE (docs/phase_notes/P3_centralised.md). Next: Phase 4 (fl_sim.py + FedAvg B1).
+Update this line at the start of every phase: Phase 5 - DP-SGD clients, E0, B2 IN PROGRESS. Phase 4 DONE (docs/phase_notes/P4_federated.md). Code for Phase 6/7 (attacks.py, autogm, fedguard) already written + unit-tested; their experiments come in Phases 6/7.
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).
@@ -62,3 +63,22 @@ Update this line at the start of every phase: Phase 3 - centralised baseline DON
 - Load with `fedguard.data.load_processed("nf_unsw")` and `fedguard.partition.load_partition(path, fingerprint=data.fingerprint)`.
 - 104,022 unique rows, 38 features, 10 classes (Benign = 0). Train 45,225 (cap 20k/class), val 8,322, test 20,805.
 - Dropped identifiers: IPs, ports, DNS_QUERY_ID. log1p as float32 BEFORE de-duplication (prevents float collisions across splits).
+
+## Federated facts (Phase 4)
+- Engine: `src/fedguard/fl_sim.py`; runner: `scripts/run_experiments.py --config|--sweep [--shard i/n] [--set k=v] [--dry-run]`.
+  Run dir name = name_a{alpha}_k{K}_e{E}[_eps{e}_c{C}][_{attack}{frac}]_s{seed}_{hash6}; finished = metrics_test.json.
+- `set_flat` must COPY into parameters (never torch's vector_to_parameters: F24). Parameter vector always from
+  model.parameters() (DPLSTM state_dict lists LSTM weights twice under aliases, F26).
+- All federated baselines: E=5, patience 15, min 10 rounds, max 120 (B1) / 40 (DP runs: max_rounds = privacy budget).
+- B1 (test macro-F1): alpha 100 0.603, alpha 0.5 0.537 +/- 0.076, alpha 0.1 0.435 (F29). Seed spread at alpha 0.5
+  is large -> always compare methods on the same partitions (paired).
+- Never run Flower SuperNodes next to training jobs (RAM, F25). Flower parity = 6.9e-17 (F26).
+- Smoke check after big changes: `python scripts/run_experiments.py --sweep configs/sweeps/smoke.yaml --force`.
+
+## DP facts (Phase 5)
+- `src/fedguard/dp.py`: sigma per client calibrated ONCE for T_round * max_rounds steps (RDP, delta = 1/N);
+  epsilon_spent for rounds actually run; noise_radius = lr*sigma*C*sqrt(T*d)/B; DP config needs dp.clip.
+- make_private uses its own noise generator, so sigma and sigma=0 runs share batches and dropout (E0, determinism).
+- Model must be in train mode before make_private (evaluate() leaves it in eval mode).
+- Per-example grad norms with GradSampleModule need a MEAN loss (sum gives batch-size-times norms).
+

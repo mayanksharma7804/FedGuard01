@@ -1,0 +1,24 @@
+# B1 - plain federated learning: FedAvg, no DP, no attack, non-IID Dirichlet clients.
+# Same model and the same client training settings as B0 (Phase 3, F19).
+name: b1_fedavg
+dataset: nf_unsw
+seed: 42
+model: {conv1: 32, conv2: 64, hidden: 64, dropout: 0.3}
+train:
+  lr: 0.2
+  batch_size: 256
+  class_weight: none
+  eval_batch: 4096
+  device: auto
+fl:
+  clients: 5
+  alpha: 0.5
+  # local_epochs chosen in Phase 4 on the VALIDATION split at equal compute (Findings.md F27):
+  # E=5 -> best and most stable val macro-F1, ~45 rounds instead of ~170.
+  local_epochs: 5
+  max_rounds: 120
+  patience: 15              # rounds; 8 stopped non-IID runs during temporary dips (Findings.md F28)
+  min_rounds: 10
+  aggregator: {name: fedavg}
+dp: {epsilon: null}
+attack: {type: none, fraction: 0.0}

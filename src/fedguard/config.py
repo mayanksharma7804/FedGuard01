@@ -21,7 +21,32 @@ DEFAULTS = {
         "eval_batch": 4096,
         "device": "auto",           # auto | cuda | cpu
     },
+    # federated settings (Phase 4+); ignored by the centralised B0 script
+    "fl": {
+        "clients": 5,
+        "alpha": 0.5,               # Dirichlet non-IID level of the partition file
+        "local_epochs": 1,
+        "max_rounds": 200,
+        "patience": 30,             # early stopping on validation macro-F1, in rounds
+        "min_rounds": 20,
+        "aggregator": {"name": "fedavg"},
+    },
+    "dp": {"epsilon": None},        # None = no DP (Phase 5 adds DP-SGD)
+    "attack": {"type": "none", "fraction": 0.0},   # Phase 6
 }
+
+
+def get_dotted(cfg: dict, key: str):
+    for part in key.split("."):
+        cfg = cfg[part]
+    return cfg
+
+
+def set_dotted(cfg: dict, key: str, value) -> None:
+    parts = key.split(".")
+    for part in parts[:-1]:
+        cfg = cfg.setdefault(part, {})
+    cfg[parts[-1]] = value
 
 
 def deep_merge(base: dict, extra: dict) -> dict:
