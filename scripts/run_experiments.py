@@ -36,6 +36,7 @@ from fedguard.utils import REPO_ROOT, set_seed
 
 RUNS = REPO_ROOT / "results" / "runs"
 PAUSE = RUNS / "PAUSE"          # create this file to pause every running sweep at the next round boundary
+PAUSE_AFTER_RUN = RUNS / "PAUSE_AFTER_RUN"   # ... or this one: finish the current run, then stop (clean boundary)
 
 
 def pause_requested() -> bool:
@@ -178,8 +179,9 @@ def main():
             done = (RUNS / run_name(cfg) / "metrics_test.json").exists()
             print(("  [done] " if done else "  [todo] ") + run_name(cfg))
             continue
-        if pause_requested():
-            print(f"PAUSED (before {run_name(cfg)}): delete {PAUSE} and start the sweep again to continue", flush=True)
+        if pause_requested() or PAUSE_AFTER_RUN.exists():
+            print(f"PAUSED (before {run_name(cfg)}, every earlier run is complete): delete the PAUSE file and "
+                  f"start the sweep again to continue", flush=True)
             return
         try:
             run_one(cfg, args.force)
