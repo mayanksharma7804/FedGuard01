@@ -44,8 +44,17 @@ def parse_value(text):
 def run_name(cfg) -> str:
     f = cfg["fl"]
     parts = [cfg["name"], f"a{f['alpha']:g}", f"k{f['clients']}", f"e{f['local_epochs']}"]
-    if cfg["dp"].get("epsilon") is not None:
-        parts.append(f"eps{cfg['dp']['epsilon']:g}_c{cfg['dp']['clip']:g}")
+    agg = f["aggregator"]
+    if agg["name"] != "fedavg":                             # e.g. autogm-lam1, fedguard-modquadrature-noi3
+        short = {"lam_scale": "lam", "k_mad": "k", "mode": "", "noise_tol_z": "r4z", "use_r_eff": "reff"}
+        tags = [f"{short.get(k, k[:3])}{v:g}" if isinstance(v, (int, float)) and not isinstance(v, bool)
+                else f"{short.get(k, k[:3])}{v}" for k, v in sorted(agg.items()) if k not in ("name", "outer")]
+        parts.append("-".join([agg["name"]] + tags))
+    eps = cfg["dp"].get("epsilon")
+    if isinstance(eps, (list, tuple)):                      # heterogeneous privacy, e.g. eps1-3-8
+        parts.append("eps" + "-".join(f"{e:g}" for e in eps) + f"_c{cfg['dp']['clip']:g}")
+    elif eps is not None:
+        parts.append(f"eps{eps:g}_c{cfg['dp']['clip']:g}")
     if cfg["attack"]["type"] != "none":
         parts.append(f"{cfg['attack']['type']}{cfg['attack']['fraction']:g}")
     parts.append(f"s{cfg['seed']}")
@@ -99,9 +108,9 @@ def run_one(cfg, force=False):
     sim = FLSimulation(cfg, data, parts, device, log=log)
     if sim.dp:
         dpc = cfg["dp"]
-        log(f"  DP-SGD: target eps={dpc['epsilon']:g} over {f['max_rounds']} rounds, delta=1/N per client, C={dpc['clip']:g}")
+        log(f"  DP-SGD: target eps={dpc['epsilon']} over {f['max_rounds']} rounds, delta=1/N per client, C={dpc['clip']:g}")
         for c in sim.clients:
-            log(f"    client {c.cid}: n={c.n:6d}  T={c.meta['T']:4d}/round  sigma={c.meta['sigma']:.3f}  "
+            log(f"    client {c.cid}: n={c.n:6d}  eps={c.meta['target_epsilon']:g}  T={c.meta['T']:4d}/round  sigma={c.meta['sigma']:.3f}  "
                 f"delta={c.meta['delta']:.2e}  declared radius={sim.noise_radius(c.meta):.4f}")
     model, rounds, weights_log, info = sim.run()
     eb = cfg["train"]["eval_batch"]

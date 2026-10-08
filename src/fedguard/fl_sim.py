@@ -76,7 +76,7 @@ class FLSimulation:
         self.is_attacker = np.array([c.is_attacker for c in self.clients])
         self.dp = dp.is_dp(cfg)
         for c in self.clients:                       # sigma fixed once per client for the whole budget
-            c.meta = dp.client_privacy_plan(c.n, cfg)
+            c.meta = dp.client_privacy_plan(c.n, cfg, c.cid)
         self.aggregate = get_aggregator(cfg["fl"]["aggregator"]["name"])
         w = class_weights(data.y_tr, data.n_classes, cfg["train"]["class_weight"])
         self.loss_fn = nn.CrossEntropyLoss(weight=None if w is None else w.to(device))
@@ -100,15 +100,15 @@ class FLSimulation:
             p = client.meta
             model, opt, loader = dp.make_private(model, opt, loader, p["sigma"], p["C"],
                                                  noise_seed=rs ^ 0x5EED, device=self.device)
-            steps = p["T"]                                    # E * int(n/B) Poisson batches
+            steps, batch = p["T"], p["B"]                     # Opacus' Poisson batches / expected batch size
         else:
-            steps = len(loader) * f["local_epochs"]
+            steps, batch = len(loader) * f["local_epochs"], t["batch_size"]
         losses = [train_epoch(model, loader, opt, self.loss_fn, self.device) for _ in range(f["local_epochs"])]
         delta = flat(model) - global_vec
         if client.is_attacker and self.attack in ("sign_flip", "gaussian"):
             delta = self.poison(delta, rs)                    # model poisoning; declared meta stays honest-looking
         meta = {"n": client.n, "lr": t["lr"], "sigma": client.meta["sigma"], "C": client.meta["C"],
-                "B": t["batch_size"], "T": steps}
+                "B": batch, "T": steps}
         return {"delta": delta, "loss": float(np.mean(losses)), "meta": meta}
 
     def poison(self, delta: torch.Tensor, rs: int) -> torch.Tensor:
@@ -131,7 +131,9 @@ class FLSimulation:
             return {"epsilon_target": None, "epsilon_spent_max": None}
         spent = [dp.epsilon_spent(c.meta["sigma"], c.meta["q"], c.meta["T"] * rounds_run, c.meta["delta"])
                  for c in self.clients]
-        return {"epsilon_target": self.clients[0].meta["target_epsilon"], "epsilon_spent_max": max(spent),
+        return {"epsilon_target": max(c.meta["target_epsilon"] for c in self.clients),
+                "epsilon_target_per_client": [c.meta["target_epsilon"] for c in self.clients],
+                "epsilon_spent_max": max(spent),
                 "epsilon_spent_per_client": spent, "delta_per_client": [c.meta["delta"] for c in self.clients],
                 "sigma_per_client": [c.meta["sigma"] for c in self.clients], "clip": self.clients[0].meta["C"],
                 "rounds_budget": self.cfg["fl"]["max_rounds"]}
@@ -172,7 +174,9 @@ class FLSimulation:
                                     "client_loss": o["loss"], "declared_radius": float(r[c.cid])})
             self.log(f"  round {rnd:3d}/{f['max_rounds']}  client loss {rounds[-1]['client_loss_mean']:.4f}  "
                      f"val macro-F1 {val['macro_f1']:.4f}  best {best['f1']:.4f} (round {best['round']})  "
-                     f"patience {bad}/{f['patience']}{'  *new best' if improved else ''}  ({train_s:.1f}s)")
+                     f"patience {bad}/{f['patience']}{'  *new best' if improved else ''}  ({train_s:.1f}s)"
+                     + (f"  weights max {w.max():.2f} HRR {rounds[-1]['hrr']:.2f}" if f["aggregator"]["name"] != "fedavg" else "")
+                     + (f" attacker share {rounds[-1]['attacker_share']:.2f}" if self.attack != "none" else ""))
             if bad >= f["patience"] and rnd >= f["min_rounds"]:
                 self.log(f"  early stop at round {rnd} (best round {best['round']}, val macro-F1 {best['f1']:.4f})")
                 break

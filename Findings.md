@@ -4,7 +4,7 @@ Every finding of the project, in the order we found it: **what we did, what we f
 and what we decided**. This file feeds the report (Methodology, Results, Limitations) and the viva.
 It is updated after every phase.
 
-**Status:** Phases 1-4 complete (last updated 8 Oct 2026).
+**Status:** Phases 1-5 complete (last updated 8 Oct 2026).
 
 | ID | Phase | Finding (one line) | Type |
 |---|---|---|---|
@@ -37,6 +37,15 @@ It is updated after every phase.
 | [F27](#f27) | 4 | 5 local epochs per round beats 1 or 2 at equal compute and needs ~45 rounds instead of ~170 | Method |
 | [F28](#f28) | 4 | Non-IID FedAvg curves have deep temporary dips; patience 8 stopped runs early, so B1 was re-run with patience 15 | Method |
 | [F29](#f29) | 4 | **B1: FedAvg matches B0 with IID clients (0.603) but loses 0.06 at alpha 0.5 and 0.16 at alpha 0.1**; rare classes held by one small client disappear | Result |
+| [F30](#f30) | 5 | Per-example gradient norms: median ~1-4 with a heavy tail; my first measurement was 512x too big (wrong loss reduction) | Measurement |
+| [F31](#f31) | 7 (prep) | Synthetic unit tests: without R4, quadrature FedGuard rejects the most private honest client in 30-50% of seeds; linear + R4 has its own failure | Method |
+| [F32](#f32) | 5 | A DP round costs ~65-80 s (2.5-3x a plain round); a 40-round DP run ~45-55 min | Measurement |
+| [F33](#f33) | 5 | Clipping norm C = 2 chosen on validation (0.264 vs 0.21-0.23); DP at epsilon 3 costs a lot: val macro-F1 ~0.26 vs ~0.57 without DP | Method |
+| [F34](#f34) | 5 | **E0 caught a bug: the declared noise radius was 5-20% too small** because Opacus samples with q = 1/ceil(n/B), not B/n; fixed and regression-tested | Bug |
+| [F35](#f35) | 5 | **E0: the noise-radius formula predicts the real DP noise to within 1% (kappa = 1.00)**; noise is orthogonal to the signal (cos ~ 0) | Result |
+| [F36](#f36) | 5 | With one shared epsilon every client gets almost the same noise radius, whatever its size; FedGuard's idea needs a mixed-privacy scenario | Method |
+| [F37](#f37) | 6 (prep) | Our AutoGM matches the Blades benchmark's AutoGM (AutoGM's first author) to 1e-11 on identical inputs | Verification |
+| [F38](#f38) | 5 | **B2: privacy is very costly here - macro-F1 0.51 (no DP) -> 0.25 (eps 8) -> 0.22 (eps 3) -> 0.18 (eps 1)**; rare attack classes vanish, attack-vs-benign detection mostly survives | Result |
 
 ---
 
@@ -281,4 +290,130 @@ It is updated after every phase.
   - **ref [1] (91-93%):** our accuracy is 0.87-0.90 and binary F1 0.89-0.91, a little below. Our data is de-duplicated (95.5% duplicates removed, F07/F13) and identifiers are dropped, which removes easy, memorisable rows, so the numbers are not directly comparable; macro-F1 over 10 classes is our main metric.
 - **Evidence:** `results/b1_fedavg/summary_by_alpha.csv`, `per_class_recall_by_alpha.csv`, `results/master.csv`, figures `results/figures/b1_fedavg_by_alpha.png`, `b1_fedavg_rounds.png`, `b1_fedavg_per_class_recall.png`. ~26 s per round, 30-50 minutes per run on the RTX 3050 (2 runs in parallel).
 - **Decision / impact:** B1 is the reference for every later federated experiment. Main experiments use **alpha 0.5** (the plan's setting); its large seed variance means differences between methods must be read against +/- 0.08, so every method always runs on the **same three partitions**, and paired (same-seed) comparisons will be reported. For the report: the loss under non-IID is a loss of rare classes (minority clients with unique classes are out-voted by sample-size weighting), not of attack detection as such.
+
+---
+
+## Phase 5 - Differential privacy (B2) and noise-radius calibration (E0)
+
+### F30
+**Per-example gradient norms of the CNN-LSTM have a median of about 1-4 and a heavy tail; this sets the range for the clipping norm C. My first measurement was wrong by a factor of 512.**
+- **What we did:** `scripts/measure_grad_norms.py` trains the B0 model (no DP) and, after 0/1/3/10/30 epochs, measures the gradient norm of 4,096 single training rows with Opacus' `GradSampleModule`.
+- **What we found:** The first run reported medians of ~650-2,000. Checked against plain autograd on single rows (norm ~1.2), Opacus' per-sample gradients were exactly **batch-size (512) times** too large: `GradSampleModule` assumes a **mean**-reduced loss and my script used `reduction="sum"`. The training code uses the mean loss (as `make_private` expects), so DP training itself was never affected. Corrected values:
+
+  | epoch | p10 | median | p90 | share > C=0.5 | > 1 | > 2 |
+  |---|---|---|---|---|---|---|
+  | 0 | 1.21 | 1.27 | 1.54 | 100% | 100% | 0.4% |
+  | 1 | 2.15 | 3.11 | 5.41 | 100% | 100% | 98% |
+  | 10 | 0.01 | 0.86 | 13.3 | 60% | 47% | 38% |
+  | 30 | 0.004 | 0.90 | 12.2 | 59% | 48% | 37% |
+
+  Once trained, the rows split into well-fitted ones (norm ~0) and a heavy tail of hard rows (rare, confusable classes).
+- **Evidence:** `results/dp/grad_norms.csv`.
+- **Decision / impact:** Pilot C in {0.5, 1, 2, 4} on the validation split (F33). The script now uses the mean loss with a comment explaining why.
+
+### F31
+**Synthetic unit tests of FedGuard: without R4, the quadrature version rejects the most private honest client in 30-50% of seeds; R4 fixes that, but linear + R4 rejects other honest clients when clients are very similar.**
+- **What we did:** Wrote the plan's unit tests (`tests/test_aggregators.py`, section 12.4) for `autogm` and `fedguard` (linear / quadrature, R4 off / on). Scenario: 10 honest clients with radii 0.2 ... 2.0, all declaring their true noise, around a shared update of length 1 plus a client-specific non-IID "spread"; 30 seeds per spread level; 4,000-dimensional updates.
+- **What we found:** Share of seeds where the most private client is rejected (weight < 0.5/K), and mean HRR:
+
+  | spread | linear | linear + R4 | quadrature | quadrature + R4 |
+  |---|---|---|---|---|
+  | 0 | 50% (HRR 0.32) | 0% (0.00) | 50% (0.27) | 0% (0.00) |
+  | 0.1 | 10% (0.05) | 0% (**0.17**) | 43% (0.09) | 0% (0.17) |
+  | 0.2 | 0% (0.02) | 0% (**0.24**) | 40% (0.11) | 0% (0.03) |
+  | 0.3 | 0% (0.02) | 0% (0.00) | 40% (0.13) | 0% (0.00) |
+  | 0.5 | 0% (0.00) | 0% (0.00) | 30% (0.08) | 0% (0.00) |
+
+  AutoGM rejects the most private client in every case (the O2 conflict). Without R4, quadrature punishes the natural wobble of a large noise length (std r^2 sqrt(2/d) on the squared length) because synthetic non-IID spreads are all almost the same length, so the allowance s is tiny. With R4, the noisy clients' residuals are often cut to 0; at small spread this makes the median and MAD - and so s - collapse, and the quiet clients with a little spread get rejected instead (linear + R4, HRR up to 0.24). All variants still give a far attacker zero weight, are permutation- and scale-invariant.
+- **Decision / impact:** The unit test for this case asserts the three variants that work at a realistic spread (0.3) and marks quadrature without R4 as a **strict expected failure** (documented limitation, not hidden). This extends F02: the choice of mode x R4 is not obvious, and the allowance s (median + k*MAD) is the fragile part. Ablation E6 must decide on real IDS data; a floor on s (e.g. relative to the median distance) is a candidate fix to test in Phase 7.
+
+### F32
+**A DP-SGD round costs about 65-80 s on the RTX 3050 (2.5-3x a plain round), so a 40-round DP run takes 45-55 minutes.**
+- **What we did:** Timed the first DP-FedAvg runs (5 clients, E = 5, Opacus with Poisson sampling, 2 runs in parallel on the GPU).
+- **What we found:** **65-68 s per round** next to one plain run, **78-82 s** next to another DP run (plain FedAvg round: ~26 s). A 2-round smoke run spends **epsilon 2.9992 of 3** (budget 2 rounds), and the full pilot spends 2.998 of 3 over 40 rounds - the accountant works as designed.
+- **Decision / impact:** B2 (12 runs, 9 with DP) takes ~4-5 hours with 2 parallel runs. The plan's Phase 8 matrix (E5 alone = 144 DP runs at K = 10) would need ~60-70 hours of GPU time; it must be trimmed or split across more machines - to be decided at the start of Phase 6 from these timings.
+
+### F33
+**Clipping norm C = 2 is best on validation, but DP at epsilon = 3 is very costly in this setting: validation macro-F1 ~0.21-0.26 against ~0.57 without DP.**
+- **What we did:** DP-FedAvg pilot on the **validation** split: epsilon 3 (delta = 1/N per client, budget 40 rounds), alpha 0.5, seed 42, E = 5, lr 0.2, expected batch 256, C in {0.5, 1, 2, 4}; C = 8 added because 0.5 -> 2 kept improving.
+- **What we found:**
+
+  | C | best val macro-F1 | best round | final client loss |
+  |---|---|---|---|
+  | 0.5 | 0.212 | 39 | 1.56 |
+  | 1 | 0.223 | 34 | 1.15 |
+  | **2** | **0.264** | 37 | 0.96 |
+  | 4 | 0.228 | 33 | - |
+  | 8 | 0.215 | 24 | - |
+
+  Interior optimum at C = 2, inside the median per-example gradient norm during training (~1-4, F30). Single seed, so differences of ~0.04 are noisy. With noise multipliers sigma = 2.4-6.1 (small clients need more noise), the **aggregated update has length ~2 in every round - exactly the predicted combined noise sqrt(sum w_k^2 r_k^2)** - so the global model moves mostly by noise; the same seed without DP reaches ~0.57 (B1). A signal-to-noise argument explains why tuning cannot rescue it: when sigma is large, the total SNR is roughly epsilon * N * (g/C) / sqrt(d), almost independent of batch size, local epochs and rounds; only the data per client N (2k-19k rows here), the model size d (40k) and how well clipped gradients agree matter.
+- **Evidence:** `results/runs/p5_clip_pilot_*` (not committed), `python scripts/compare_runs.py --glob "p5_clip_pilot_*"`. Due to F34 the pilot's sigma was calibrated with a slightly wrong sampling rate; recomputed with Opacus' true sampling, the pilot runs spent epsilon **2.84-3.05** per client (target 3), so the comparison is valid.
+- **Decision / impact:** **C = 2** for every DP run (`configs/b2_dpfedavg.yaml`). The cost of privacy will be large; it is reported as it is (B2, F38). Expected consequence for Phases 6-7: honest DP updates are dominated by noise (radius ~13-15 per round vs a clean update of ~1.5), which is exactly the regime where AutoGM should wrongly reject honest clients - and where FedGuard's residual is hardest to estimate.
+
+### F34
+**Experiment E0 caught a bug: the declared noise radius was 5-20% too small, because Opacus samples with rate 1/ceil(n/B), not B/n.**
+- **What we did:** E0 (`scripts/e0_calibration.py`): train one client twice from the same global model with the same batches and dropout - once with sigma, once with sigma = 0 - and compare ||delta_noisy - delta_clean|| with the declared radius lr*sigma*C*sqrt(T*d)/B.
+- **What we found:** Measured/predicted was **1.089** for a client with 3,649 rows and **1.186** for one with 1,856 rows, **identical for sigma = 0.5, 1 and 2** - so the noise is exactly first-order (the formula's shape is right), but T and B were wrong. Opacus' `make_private` sets the sample rate to 1 / len(DataLoader) = **1/ceil(n/B)**, takes **int(1/q)** Poisson batches per epoch (its own float arithmetic gives k-1 for some k, e.g. 93), and divides the noisy sum by **int(n / batches)**. We had used q = B/n, floor(n/B) steps and B = 256. Check: sqrt(75/70) x 256/243 = 1.089 and sqrt(40/35) x 256/232 = 1.18. The privacy accounting used the same too-small q and step count; recomputed, the effect on epsilon is small (pilot: 2.84-3.05 instead of 3.00).
+- **Evidence:** `logs/p5_e0_before_fix_F34.log` (not committed; numbers above), Opacus `privacy_engine.make_private` and `data_loader.DPDataLoader.from_data_loader`.
+- **Decision / impact:** `fedguard.dp.poisson_params` now mirrors Opacus exactly (q, batches per epoch, expected batch) and is used for sigma calibration, epsilon accounting and the declared radius (engine and Flower client). New tests: our numbers equal what Opacus' loader and optimizer actually use (including the k = 93 float case), and the radius matches the measured noise over several Poisson steps. B2 was started only after the fix. **Lesson for the report:** E0 is not a formality - the server-side formula is only as good as the declared metadata, and a silent 5-20% under-statement would have made honest small clients look suspicious to FedGuard.
+
+### F35
+**E0: after the F34 fix, the server's noise-radius formula predicts the real DP-SGD noise to within about 1% (kappa = 1.00), and the noise is orthogonal to the clean update.**
+- **What we did:** `scripts/e0_calibration.py` with C = 2, lr 0.2, E = 5: each of the 5 clients (alpha 0.5, seed 42 partition; 1,856-18,953 rows, T = 40-375 local steps) trained from the same global model with sigma in {0.5, 1, 2} and with sigma = 0 (same Poisson batches and dropout), 5 seeds each, from two start models: random initialisation and the global model after 5 FedAvg rounds. 150 pairs.
+- **What we found (plan Table 10.1):**
+
+  | start | sigma | predicted r (mean) | measured (mean) | ratio mean +/- std | ratio min-max | pairs |
+  |---|---|---|---|---|---|---|
+  | init | 0.5 | 2.00 | 2.01 | 1.005 +/- 0.005 | 0.994-1.015 | 25 |
+  | init | 1.0 | 3.99 | 4.02 | 1.004 +/- 0.005 | 0.994-1.013 | 25 |
+  | init | 2.0 | 7.99 | 8.02 | 1.004 +/- 0.005 | 0.994-1.012 | 25 |
+  | warm | 0.5 | 2.00 | 2.00 | 1.000 +/- 0.005 | 0.993-1.008 | 25 |
+  | warm | 1.0 | 3.99 | 3.99 | 1.000 +/- 0.005 | 0.993-1.008 | 25 |
+  | warm | 2.0 | 7.99 | 7.99 | 1.000 +/- 0.004 | 0.993-1.008 | 25 |
+
+  - Least-squares **kappa = 1.005 (init) and 0.999 (warm)**: no correction factor needed. The ratio does not depend on sigma or on T (40-375 steps), so the first-order formula holds even over hundreds of noisy steps; the spread (std 0.0045) is close to the theoretical wobble of a Gaussian noise length, 1/sqrt(2d) = 0.0035.
+  - **cos(noise, clean update) = -0.002 to -0.008**: the DP noise is almost exactly at 90 degrees to the signal, which experimentally supports FedGuard's quadrature refinement R2 (dist^2 = signal^2 + noise^2).
+  - Signal-to-noise per round (||clean update|| / r): 1.35 at sigma 0.5 and 0.34 at sigma 2 from initialisation, only **0.55 / 0.14 from the warm model** - with the sigma = 2.4-6 that epsilon 3 needs (F33), an honest client's update is >90% noise by length.
+- **Evidence:** `results/e0_calibration/e0_table.csv`, `e0_pairs.csv`, `results/figures/e0_calibration.png`, `logs/p5_e0.log`.
+- **Decision / impact:** FedGuard can use the declared radius r = lr*sigma*C*sqrt(T*d)/B as it is (kappa = 1), provided T and B are Opacus' real values (F34). The foundation of the hypothesis holds on real IDS training. The tiny relative wobble (~0.5%) of a large radius is what R4 is meant to forgive (F02, F31): at r ~ 14 it is ~0.07 in length, comparable to small real residuals.
+
+### F36
+**With one shared epsilon, every client's declared noise radius is almost the same (~12-15 per round at epsilon 3), whatever its data size - so the plan's uniform-epsilon grids hardly test FedGuard's main idea.**
+- **What we did:** Computed sigma and the declared radius r for the real client sizes of the K = 10 partitions (215 to 18,456 rows) with the B2 settings (E = 5, 40 rounds, C = 2, lr 0.2, delta = 1/N).
+- **What we found:**
+
+  | epsilon | n = 215 | n = 1,210 | n = 3,345 | n = 10,976 | n = 18,456 |
+  |---|---|---|---|---|---|
+  | 8 | sigma 6.7, r 5.6 | 3.4, 5.7 | 2.2, 6.3 | 1.4, 6.7 | 1.2, 7.3 |
+  | 3 | 14.3, 11.9 | 7.4, 12.3 | 4.8, 13.5 | 3.0, 13.8 | 2.4, 14.6 |
+  | 1 | 34.7, 29.0 | 18.8, 31.1 | 12.3, 34.8 | 7.7, 35.5 | 6.1, 37.3 |
+
+  Small clients need a much larger sigma, but they also take fewer steps per round, and the two effects cancel: when sigma is large, sigma ~ q*sqrt(steps) and r ~ sigma*sqrt(T)/B, so n drops out and r depends only on epsilon, E, R, lr, C and d (+/- 15-25% left).
+- **Decision / impact:** In uniform-epsilon experiments AutoGM's honest-rejection problem comes from non-IID spread and from every client being noisy - not from some clients being more private than others - and FedGuard mostly subtracts a common constant. Its distinctive idea (forgive each client exactly its own declared noise) is tested only when **privacy levels differ between clients**, as in the paper's hospital-and-bank story. The engine now supports per-client epsilon (`dp.epsilon: [1, 3, 8]` cycles over clients; run names `eps1-3-8`; unit-tested). Proposal for Phases 6-8: keep the plan's uniform-epsilon grids and add a **mixed-privacy scenario** (epsilon {1, 3, 8} across clients) to E4 (HRR) and to the main attack table.
+
+### F37
+**Our AutoGM gives the same weights and centre as the AutoGM in the Blades benchmark (by AutoGM's first author), to about 1e-11.**
+- **What we did:** Ported Blades v0.1.0's `Autogm` and `Geomed` (`src/blades/aggregators/autogm.py`, `geomed.py`, Apache-2.0) line by line to NumPy and ran both on the same synthetic rounds (9 clients in 2,000 dimensions: 7 honest with different noise levels and non-IID spread, 2 sign-flip attackers), with the same absolute lambda (Blades uses a fixed lambda; ours is lambda_scale x median distance, so `autogm` got an optional `lam` parameter for this check).
+- **What we found:** Maximum weight difference **1.4e-11 to 3.9e-11**, relative centre difference **1.8e-11 to 4.2e-11** in all 4 trials; both give the attackers zero weight. Blades' weight step (sort distances, find eta, a_i = max(eta - d_i, 0)/lambda) is algebraically the same as our simplex projection of -d/lambda. Its Weiszfeld loop re-uses the previous iteration's normalised weights instead of the fixed alphas, which looks non-standard, but changes the result by only ~4e-7 here. Side observation: with lambda = median distance, AutoGM keeps only 2-3 of the 7 honest clients in every trial.
+- **Evidence:** `tests/test_blades_crosscheck.py` (permanent test, 4 trials).
+- **Decision / impact:** The AutoGM baseline is a faithful implementation of the reference. Phase 6 still tunes its lambda_scale on validation (plan 11.2) so FedGuard is compared with AutoGM at its best.
+
+### F38
+**B2: DP-SGD costs about half of the macro-F1 even at epsilon = 8; under DP the model keeps only Benign, Exploits and Fuzzers, while attack-vs-benign detection mostly survives.**
+- **What we did:** DP-FedAvg, 5 clients, alpha 0.5, E = 5, C = 2, 40-round privacy budget, epsilon in {inf, 8, 3, 1} (delta = 1/N per client) x seeds {42, 43, 44}; best round on validation, test once.
+- **What we found (test, mean +/- std over 3 seeds):**
+
+  | epsilon | macro-F1 | binary F1 | benign FPR | detection | sigma (range over clients) | epsilon spent |
+  |---|---|---|---|---|---|---|
+  | inf (no DP) | **0.513 +/- 0.056** | 0.904 | 0.058 | 0.919 | - | - |
+  | 8 | **0.253 +/- 0.036** | 0.851 | 0.095 | 0.880 | 1.2-2.5 | 8.00 |
+  | 3 | **0.219 +/- 0.029** | 0.853 | 0.114 | 0.911 | 2.4-5.4 | 2.69-3.00 |
+  | 1 | **0.183 +/- 0.028** | 0.800 | 0.110 | 0.812 | 6.2-13.8 | 1.00 |
+
+  - Per-class recall (mean): with DP, **Analysis, Backdoor, DoS, Generic, Reconnaissance, Shellcode and Worms all fall to ~0** (except Analysis 0.21 at epsilon 8); Benign stays ~0.89, Exploits ~0.86-0.94, Fuzzers 0.65 -> 0.22 as epsilon shrinks. So DP removes the ability to tell **which** attack it is, and roughly 5-10 points of attack-vs-benign quality.
+  - The largest drop is from no DP to epsilon 8; after that the curve is flat-ish. The accountant spends exactly the budget over 40 rounds (one epsilon-3 run stopped early at round 33 and spent 2.69).
+  - The no-DP run with the same 40-round budget (0.513) is close to B1 with 120 rounds (0.537) - the budget, not the round limit, causes the loss.
+  - Why so costly: noise dominates every update (radius ~13-15 per round vs a clean update of ~1.5, F35), and rare classes have only tens to hundreds of rows per client, so their gradient signal is the first to drown (clipping also caps their large per-example gradients, F30). This matches F33's signal-to-noise argument (few rows per client, 40k parameters).
+- **Evidence:** `results/b2_dpfedavg/summary_by_epsilon.csv`, `per_class_recall_by_epsilon.csv`, figures `results/figures/b2_dpfedavg_by_epsilon.png`, `b2_dpfedavg_rounds.png`, `b2_dpfedavg_per_class_recall.png`, `results/master.csv`.
+- **Decision / impact:** Reported as it is - the honest cost of record-level DP with small clients. No "noise as a regulariser" effect (plan expert tip): stronger privacy was never better here. For Phases 6-8 this sets the bar: with DP on, the robust aggregators are compared on a model that mainly separates benign / Exploits / Fuzzers, so **attack-vs-benign metrics (binary F1, benign FPR) and macro-F1 must both be reported**. Option for the report's future work: larger clients, a smaller model, or client-level DP would raise utility.
 

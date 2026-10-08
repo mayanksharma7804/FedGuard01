@@ -60,6 +60,7 @@ def autogm(X, n=None, r=None, params=None):
     AutoGM ignores the declared noise r: an honest client that adds a lot of DP noise looks 'far'."""
     p = params or {}
     lam_scale, outer = float(p.get("lam_scale", 1.0)), int(p.get("outer", 20))
+    lam_abs = p.get("lam")                     # fixed absolute lambda (as in Blades) - used for the cross-check
     X = np.asarray(X, dtype=np.float64)
     K = len(X)
     a = np.full(K, 1.0 / K)
@@ -67,7 +68,7 @@ def autogm(X, n=None, r=None, params=None):
     d = np.linalg.norm(X - z, axis=1)
     for _ in range(outer):
         d = np.linalg.norm(X - z, axis=1)
-        lam = lam_scale * max(np.median(d), 1e-12)
+        lam = float(lam_abs) if lam_abs is not None else lam_scale * max(np.median(d), 1e-12)
         a = project_simplex(-d / lam)
         z = weighted_geomed(X, a, z0=z)
     d = np.linalg.norm(X - z, axis=1)

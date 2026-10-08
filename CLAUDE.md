@@ -49,7 +49,7 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 5 - DP-SGD clients, E0, B2 IN PROGRESS. Phase 4 DONE (docs/phase_notes/P4_federated.md). Code for Phase 6/7 (attacks.py, autogm, fedguard) already written + unit-tested; their experiments come in Phases 6/7.
+Update this line at the start of every phase: Phase 6 - attacks, AutoGM (B3/B4), O2 conflict IN PROGRESS. Phase 5 DONE (docs/phase_notes/P5_dp.md).
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).
@@ -81,4 +81,16 @@ Update this line at the start of every phase: Phase 5 - DP-SGD clients, E0, B2 I
 - make_private uses its own noise generator, so sigma and sigma=0 runs share batches and dropout (E0, determinism).
 - Model must be in train mode before make_private (evaluate() leaves it in eval mode).
 - Per-example grad norms with GradSampleModule need a MEAN loss (sum gives batch-size-times norms).
+- poisson_params mirrors Opacus: q = 1/ceil(n/B), int(1/q) batches/epoch, B_exp = int(n/batches) (F34). Never use B/n.
+- DP settings for every DP run: C = 2 (F33), E = 5, 40-round budget, delta = 1/N. E0: kappa = 1.00 (F35).
+- B2 (test macro-F1): no DP 0.513, eps 8 0.253, eps 3 0.219, eps 1 0.183; rare classes vanish under DP (F38).
+- One shared epsilon -> all clients get ~the same radius (F36); per-client epsilon: dp.epsilon: [1, 3, 8].
+
+## Robust aggregation facts (Phase 6 prep)
+- aggregators.py: fedavg, autogm (lam = lam_scale x median distance, or fixed `lam`), fedguard (mode linear|
+  quadrature, k_mad, lam_scale, use_r_eff, noise_tol_z = R4), too_clean. Our AutoGM = Blades to 1e-11 (F37).
+- Under DP noise, AutoGM with small lambda collapses onto ONE client (weights one-hot, model destroyed) - tune
+  lam_scale up to 8 (F39).
+- attacks.py: label_flip, sign_flip (scale 1), gaussian (length = 10 x honest); attackers chosen once per run
+  from the seed; they run DP-SGD and declare an honest-looking sigma.
 

@@ -24,7 +24,18 @@ warnings.filterwarnings("ignore", message="Full backward hook is firing")      #
 
 def is_dp(cfg) -> bool:
     eps = cfg.get("dp", {}).get("epsilon")
+    if isinstance(eps, (list, tuple)):
+        return True
     return eps is not None and math.isfinite(float(eps))
+
+
+def client_target_epsilon(cfg, cid: int = 0):
+    """dp.epsilon is one number (every client) or a list = heterogeneous privacy, client k gets
+    list[k % len(list)] (Findings F36: with one shared epsilon all clients get almost the same noise radius)."""
+    eps = cfg["dp"].get("epsilon")
+    if isinstance(eps, (list, tuple)):
+        return float(eps[cid % len(eps)])
+    return None if eps is None else float(eps)
 
 
 def client_delta(n: int, cfg) -> float:
@@ -33,9 +44,21 @@ def client_delta(n: int, cfg) -> float:
     return 1.0 / n if d in (None, "auto") else float(d)
 
 
+def poisson_params(n: int, batch_size: int):
+    """(sample rate q, Poisson batches per epoch, expected batch size) EXACTLY as Opacus' make_private sets
+    them: the sampler uses q = 1 / len(original DataLoader) = 1 / ceil(n/B); the DP loader has int(1/q)
+    batches per epoch (Opacus' float arithmetic gives k-1 for some k, e.g. 93); the optimizer divides the
+    noisy sum by int(n * (1 / batches per epoch)). Accounting uses the sampler's true q.
+    Using q = B/n and floor(n/B) instead under-states both the noise radius and the epsilon spent
+    (caught by experiment E0, Findings F34)."""
+    k = math.ceil(n / batch_size)                     # len(DataLoader(..., batch_size, drop_last=False))
+    q = 1.0 / k
+    per_epoch = int(1 / q)
+    return q, per_epoch, int(n * (1 / per_epoch))
+
+
 def steps_per_round(n: int, batch_size: int, local_epochs: int) -> int:
-    """Opacus' Poisson loader has int(1/q) = int(n/B) batches per epoch."""
-    return local_epochs * max(1, int(n / batch_size))
+    return local_epochs * poisson_params(n, batch_size)[1]
 
 
 def calibrate_sigma(target_epsilon: float, delta: float, sample_rate: float, steps: int) -> float:
@@ -70,17 +93,18 @@ def noise_radius(meta: dict, d: int) -> float:
     return meta["lr"] * meta["sigma"] * meta["C"] * math.sqrt(meta["T"] * d) / meta["B"]
 
 
-def client_privacy_plan(n: int, cfg) -> dict:
-    """sigma, q, delta and steps for one client of size n under cfg (sigma = 0 without DP)."""
+def client_privacy_plan(n: int, cfg, cid: int = 0) -> dict:
+    """sigma, q, delta and steps for client `cid` of size n under cfg (sigma = 0 without DP)."""
     t, f, dp = cfg["train"], cfg["fl"], cfg["dp"]
-    B = t["batch_size"]
-    T = steps_per_round(n, B, f["local_epochs"])
-    plan = {"n": n, "B": B, "T": T, "lr": t["lr"], "sigma": 0.0, "C": 0.0, "q": min(1.0, B / n),
+    q, per_epoch, b_exp = poisson_params(n, t["batch_size"])
+    T = f["local_epochs"] * per_epoch
+    # B and T are what the DP noise radius needs: Opacus divides the noisy sum by the EXPECTED batch size
+    plan = {"n": n, "B": b_exp, "T": T, "lr": t["lr"], "sigma": 0.0, "C": 0.0, "q": q,
             "delta": None, "target_epsilon": None, "rounds_budget": f["max_rounds"]}
     if is_dp(cfg):
         plan["C"] = float(dp["clip"])
         plan["delta"] = client_delta(n, cfg)
-        plan["target_epsilon"] = float(dp["epsilon"])
+        plan["target_epsilon"] = client_target_epsilon(cfg, cid)
         plan["sigma"] = calibrate_sigma(plan["target_epsilon"], plan["delta"], plan["q"], T * f["max_rounds"])
     return plan
 

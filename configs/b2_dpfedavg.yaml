@@ -23,5 +23,5 @@ fl:
 dp:
   epsilon: 3.0               # null = no DP (epsilon = infinity)
   delta: auto                # 1/N per client
-  clip: 1.0                  # per-example clipping norm C (chosen on validation, Findings F30)
+  clip: 2.0                  # per-example clipping norm C, chosen on validation from {0.5,1,2,4,8} (Findings F33)
 attack: {type: none, fraction: 0.0}

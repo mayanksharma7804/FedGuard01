@@ -37,17 +37,17 @@ def client_round(model, X, y, cfg, cid, rnd, loss_fn, device):
     torch.manual_seed(rs)
     loader = make_loader(X, y, cfg["train"]["batch_size"], shuffle=True, seed=rs)
     opt = make_optimizer(model, cfg["train"]["lr"])
-    plan = dp.client_privacy_plan(len(y), cfg)
+    plan = dp.client_privacy_plan(len(y), cfg, cid)
     net = model
     if dp.is_dp(cfg):
         net, opt, loader = dp.make_private(model, opt, loader, plan["sigma"], plan["C"], noise_seed=rs ^ 0x5EED,
                                            device=device)
-        steps = plan["T"]
+        steps, batch = plan["T"], plan["B"]
     else:
-        steps = len(loader) * cfg["fl"]["local_epochs"]
+        steps, batch = len(loader) * cfg["fl"]["local_epochs"], cfg["train"]["batch_size"]
     losses = [train_epoch(net, loader, opt, loss_fn, device) for _ in range(cfg["fl"]["local_epochs"])]
     meta = {"n": len(y), "lr": cfg["train"]["lr"], "sigma": plan["sigma"], "C": plan["C"],
-            "B": cfg["train"]["batch_size"], "T": steps}
+            "B": batch, "T": steps}
     return float(np.mean(losses)), meta
 
 

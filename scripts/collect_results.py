@@ -23,7 +23,8 @@ def row(run_dir):
     meta = json.load(open(run_dir / "meta.json")) if (run_dir / "meta.json").exists() else {}
     r = {"run": run_dir.name, "name": cfg["name"], "seed": cfg["seed"], "dataset": cfg["dataset"],
          "clients": cfg["fl"]["clients"], "alpha": cfg["fl"]["alpha"], "local_epochs": cfg["fl"]["local_epochs"],
-         "aggregator": cfg["fl"]["aggregator"]["name"], "epsilon": cfg["dp"].get("epsilon"),
+         "aggregator": cfg["fl"]["aggregator"]["name"],
+         "epsilon": eps if not isinstance(eps := cfg["dp"].get("epsilon"), list) else "mix:" + "-".join(f"{e:g}" for e in eps),
          "attack": cfg["attack"]["type"], "attack_fraction": cfg["attack"]["fraction"],
          "lr": cfg["train"]["lr"], "best_round": test.get("best_round"), "rounds_run": test.get("rounds_run"),
          "seconds_per_round": test.get("seconds_per_round_mean"), "git_commit": meta.get("git_commit"),

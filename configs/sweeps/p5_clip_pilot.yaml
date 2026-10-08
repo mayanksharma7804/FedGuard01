@@ -1,4 +1,4 @@
-# Phase 5 pilot (VALIDATION only): which per-example clipping norm C for DP-FedAvg?
+﻿# Phase 5 pilot (VALIDATION only): which per-example clipping norm C for DP-FedAvg?
 # eps = 3, alpha = 0.5, seed 42; C range from the measured per-example gradient norms (results/dp/grad_norms.csv).
 #   python scripts/run_experiments.py --sweep configs/sweeps/p5_clip_pilot.yaml --shard 0/2
 #   python scripts/run_experiments.py --sweep configs/sweeps/p5_clip_pilot.yaml --shard 1/2
@@ -8,4 +8,4 @@ set:
   name: p5_clip_pilot
   dp: {epsilon: 3.0}
 grid:
-  dp.clip: [0.5, 1.0, 2.0, 4.0]
+  dp.clip: [0.5, 1.0, 2.0, 4.0, 8.0]   # 8 added after 0.5 -> 4 kept improving (Findings F33)

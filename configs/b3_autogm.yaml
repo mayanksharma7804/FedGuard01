@@ -1,0 +1,26 @@
+# B3 / B4 - AutoGM (ref [13]) on the server; B3 = no DP (dp.epsilon null), B4 = AutoGM + DP-SGD clients.
+# Same client settings as B1/B2. K = 10 clients, as in the plan's main attack table (E5).
+name: b3_autogm
+dataset: nf_unsw
+seed: 42
+model: {conv1: 32, conv2: 64, hidden: 64, dropout: 0.3}
+train:
+  lr: 0.2
+  batch_size: 256
+  class_weight: none
+  eval_batch: 4096
+  device: auto
+fl:
+  clients: 10
+  alpha: 0.5
+  local_epochs: 5
+  max_rounds: 40            # = DP round budget (see b2_dpfedavg.yaml)
+  patience: 15
+  min_rounds: 10
+  # lambda = lam_scale x median client distance (scale-free); lam_scale tuned on validation (Findings F39)
+  aggregator: {name: autogm, lam_scale: 1.0, outer: 20}
+dp:
+  epsilon: 3.0
+  delta: auto
+  clip: 2.0                 # Findings F33
+attack: {type: none, fraction: 0.0}

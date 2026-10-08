@@ -1,0 +1,10 @@
+# Phase 6 (VALIDATION only): AutoGM's lambda, so FedGuard is later compared with AutoGM at its best (plan 11.2).
+# K = 10, alpha 0.5, epsilon 3, seed 42; with and without 30% sign-flip attackers.
+#   python scripts/run_experiments.py --sweep configs/sweeps/p6_autogm_lambda.yaml --shard 0/2   (and 1/2)
+#   python scripts/compare_runs.py --glob "p6_autogm_lambda_*"
+base: configs/b3_autogm.yaml
+set:
+  name: p6_autogm_lambda
+grid:
+  fl.aggregator.lam_scale: [0.5, 1.0, 2.0, 4.0, 8.0]   # 8 added: small lambda collapses onto one client under DP (Findings F39)
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

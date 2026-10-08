@@ -114,4 +114,4 @@ def test_sweep_expansion_names_and_shards(tmp_path):
     assert runner.run_name(cfgs[0]) == names[0]                     # stable
     assert len(cfgs[0::2]) + len(cfgs[1::2]) == 6                    # two shards cover everything
     dp_cfg = runner.load_config("configs/b2_dpfedavg.yaml")
-    assert "_eps3_c1_s42_" in runner.run_name(dp_cfg)               # DP runs carry epsilon and clip
+    assert "_eps3_c2_s42_" in runner.run_name(dp_cfg)               # DP runs carry epsilon and clip
