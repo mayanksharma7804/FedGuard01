@@ -49,7 +49,10 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 6 - attacks, AutoGM (B3/B4), O2 conflict IN PROGRESS. Phase 5 DONE (docs/phase_notes/P5_dp.md).
+Update this line at the start of every phase: Phase 6 - attacks, AutoGM (B3/B4), O2 conflict IN PROGRESS - PAUSED 9 Oct 07:22 at 30/69 runs
+(clean stop between runs, results/runs/PAUSE_AFTER_RUN exists). To resume: delete that file, then in two terminals run
+  python scripts/run_experiments.py --sweep configs/sweeps/p6_attacks_fedavg.yaml configs/sweeps/p6_autogm.yaml configs/sweeps/p7_fedguard_tune.yaml configs/sweeps/p6_autogm_nodp.yaml configs/sweeps/e4_conflict_autogm.yaml --shard 0/2   (and --shard 1/2)
+Phase 5 DONE (docs/phase_notes/P5_dp.md).
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).

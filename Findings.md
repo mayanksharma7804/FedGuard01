@@ -4,7 +4,7 @@ Every finding of the project, in the order we found it: **what we did, what we f
 and what we decided**. This file feeds the report (Methodology, Results, Limitations) and the viva.
 It is updated after every phase.
 
-**Status:** Phases 1-5 complete (last updated 8 Oct 2026).
+**Status:** Phases 1-5 complete; Phase 6 paused at 30 of 69 runs (9 Oct 2026, 07:22, clean stop between runs; resume with the Phase 6 queue command in CLAUDE.md).
 
 | ID | Phase | Finding (one line) | Type |
 |---|---|---|---|
