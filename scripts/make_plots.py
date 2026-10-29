@@ -165,11 +165,11 @@ def method_label(row):
 ATTACK_ORDER = ["none", "label_flip", "sign_flip", "gaussian"]
 
 
-def attacks(master, name="p6_attacks"):
+def attacks(master, name="k10"):
     df = master[master["name"] == name].copy()
     if df.empty:
         print(f"no {name} runs yet"); return
-    out = RES / name; out.mkdir(parents=True, exist_ok=True)
+    out = RES / "p6_attacks"; out.mkdir(parents=True, exist_ok=True)
     df["method"] = df.apply(method_label, axis=1)
     keys = ["test_macro_f1", "test_binary_f1", "test_benign_fpr", "test_attack_detection_rate", "hrr_mean",
             "attacker_share_mean"]
@@ -191,15 +191,15 @@ def attacks(master, name="p6_attacks"):
     axes[0].legend(frameon=False, fontsize=7)
     fig.suptitle(f"Attacks ({df.attack_fraction.max():g} of clients) vs aggregators - K = {df.clients.iloc[0]}, "
                  f"alpha = {df.alpha.iloc[0]:g}", fontsize=10)
-    fig.tight_layout(); fig.savefig(FIG / f"{name}.png", dpi=150); plt.close(fig)
-    print(f"figure -> results/figures/{name}.png, table -> results/{name}/summary.csv")
+    fig.tight_layout(); fig.savefig(FIG / "p6_attacks.png", dpi=150); plt.close(fig)
+    print(f"figure -> results/figures/p6_attacks.png, table -> results/p6_attacks/summary.csv")
 
 
-def e4(master, name="e4_conflict"):
-    df = master[(master["name"] == name) & (master["attack"] == "none")].copy()
+def e4(master, name="k10"):
+    df = master[(master["name"] == name) & (master["attack"] == "none") & master["epsilon"].notna()].copy()
     if df.empty:
-        print(f"no {name} runs yet"); return
-    out = RES / name; out.mkdir(parents=True, exist_ok=True)
+        print(f"no e4 (epsilon x alpha conflict) runs yet"); return
+    out = RES / "e4_conflict"; out.mkdir(parents=True, exist_ok=True)
     df["eps"] = df["epsilon"].fillna("inf").astype(str)
     eps_order = [e for e in ["inf", "8.0", "3.0", "1.0", "mix:1-3-8"] if e in set(df["eps"])]
     for agg, g in df.groupby("aggregator"):
@@ -216,7 +216,7 @@ def e4(master, name="e4_conflict"):
             ax.set_yticks(range(len(t.index))); ax.set_yticklabels([f"alpha {a:g}" for a in t.index])
             ax.set_title(lab, fontsize=10); fig.colorbar(im, ax=ax, fraction=0.046)
         fig.suptitle(f"O2 conflict (no attackers): {agg}, K = {g.clients.iloc[0]}, mean over seeds", fontsize=10)
-        fig.tight_layout(); fig.savefig(FIG / f"{name}_{agg}.png", dpi=150); plt.close(fig)
+        fig.tight_layout(); fig.savefig(FIG / f"e4_conflict_{agg}.png", dpi=150); plt.close(fig)
         print(f"{agg}: HRR"); print(piv["hrr_mean"].round(3).to_string())
         print("macro-F1"); print(piv["test_macro_f1"].round(3).to_string())
 
@@ -258,14 +258,14 @@ def fedguard(master):
         sub = df[(df["aggregator"] == agg_name) & (df["attack"] == "sign_flip")]
         if sub.empty:
             continue
-        weight_files = [RES / "runs" / r / "weights.csv" for r in sub["run"] if (RES / "runs" / r / "weights.csv").exists()]
+        weight_files = [RES / "runs" / r / "weights_log.csv" for r in sub["run"] if (RES / "runs" / r / "weights_log.csv").exists()]
         if not weight_files:
             continue
         wdf = pd.concat([pd.read_csv(f) for f in weight_files], ignore_index=True)
-        if "client_id" not in wdf.columns or "weight" not in wdf.columns:
+        if "client" not in wdf.columns or "weight" not in wdf.columns:
             continue
         fig, ax = plt.subplots(figsize=(7, 3.4))
-        for cid, g in wdf.groupby("client_id"):
+        for cid, g in wdf.groupby("client"):
             lbl = "attacker" if g["is_attacker"].iloc[0] else "honest"
             col = "#E76F51" if g["is_attacker"].iloc[0] else "#2A9D8F"
             ax.plot(g["round"], g["weight"], color=col, alpha=0.4, lw=0.8, label=lbl)
