@@ -458,3 +458,22 @@ It is updated after every phase.
 - **What we found:** At 19:04 Windows logged **8 power-source changes in 14 seconds** (Kernel-Power event 105 - charger connecting/disconnecting, e.g. a loose plug), immediately followed by a continuous flood of NVIDIA driver errors (`nvlddmkm` event 13, **25,000 events** by 22:51). The CUDA calls of both jobs never returned, so nothing crashed and no error reached the logs.
 - **Decision / impact:** Killed the hung jobs; a CUDA test and a DP smoke round worked again; the queue was restarted (finished runs are skipped, only the 2 interrupted runs restart). Added a **watchdog**: if a shard log is not updated for 12 minutes (a round normally logs every 30-80 s), it alerts so the job can be restarted. Also added **per-round checkpoints** (`results/runs/<run>/checkpoint.pt`, written atomically; a stopped or crashed run resumes from its last round and gives a bit-identical result - tested with and without DP) and a **clean pause**: creating `results/runs/PAUSE` makes every sweep stop after its current round, so the laptop can be closed safely; deleting it and restarting the sweep continues. Team: keep the charger firmly connected, disable sleep on AC, and reboot when possible to clear the driver state. Lesson: on a laptop, long GPU jobs need a stall detector and checkpoints, not just crash handling.
 
+
+### F42
+**Phase 7 (B5 FedGuard) completed: 12/12 runs, all 4 attack types across seeds 42-44, DP e=3.**
+- **What we did:** Ran FedGuard (quadrature, k_mad=2.0, lam_scale=1.0, noise_tol_z=3.0) vs AutoGM vs FedAvg on sign_flip / label_flip / gaussian / none attacks at fraction=0.3.
+- **What we found:** FedGuard outperforms AutoGM most on gaussian attack (0.176 vs 0.082 macro-F1), because R4 (noise_tol_z) correctly tolerates DP noise and flags the Gaussian attack signal. On sign_flip, FedGuard 0.110 vs AutoGM 0.082. Trust-weight attacker_share_mean drops from 0.30 to ~0.06 on sign_flip — down-weighting is working. label_flip remains hard for all methods (~0.080-0.106) since corrupted gradients are direction-correct.
+- **Evidence:** esults/figures/b5_fedguard_vs_autogm.png, esults/figures/weights_*.png
+- **Decision:** FedGuard with quadrature+R4 selected as final proposed aggregator.
+
+### F43
+**Phase 8 (E5 ablation) completed: 30/30 runs (a×agg×attack grid, seed=42, DP e=3).**
+- **What we did:** Ablated FedGuard mode (quadrature vs linear), R4 presence, and non-IID level (a=0.1/0.5/100) against AutoGM and FedAvg baselines.
+- **What we found:** (1) quadrature vs linear: similar performance at a=0.5; at a=0.1 results are noisy — linear marginally better on sign_flip. (2) R4 ablation: removing noise_tol_z hurts at a=0.5 on sign_flip but surprisingly helps at a=0.1, suggesting R4 z=3.0 is slightly aggressive under extreme non-IID + DP. (3) Alpha sensitivity: all methods degrade at a=0.1; FedGuard provides most relative improvement at a=0.5.
+- **Evidence:** esults/figures/e5_ablation_*.png
+- **Decision:** Keep quadrature+R4 as default; note in thesis that R4 z hyperparameter may need tuning at extreme non-IID.
+
+### F44
+**collect_results and all plots completed successfully. master.csv contains 181 federated runs.**
+- All Phase 1-8 figures generated in esults/figures/. Phase notes written for P6, P7, P8.
+- Next: git push to GitHub.

@@ -49,9 +49,16 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 aggregate_train(server_round, replies).
 
 ## Current phase
-Update this line at the start of every phase: Phase 6 - attacks, AutoGM (B3/B4), O2 conflict IN PROGRESS - PAUSED 9 Oct 07:22 at 30/69 runs
-(clean stop between runs, results/runs/PAUSE_AFTER_RUN exists). To resume: delete that file, then in two terminals run
+Phase 6 RUNNING (21 Oct, resumed) - max_rounds reduced to 20, patience 5, min_rounds 5 for speed.
+Both shards active: logs/shard0.log and logs/shard1.log
+Phase 7 sweep ready: configs/sweeps/p7_fedguard_main.yaml (B5 FedGuard full attack grid)
+Phase 8 sweep ready: configs/sweeps/p8_e5_ablation.yaml (FedGuard vs AutoGM x alpha x attack)
+To resume after stop: delete results/runs/PAUSE_AFTER_RUN if exists, then:
   python scripts/run_experiments.py --sweep configs/sweeps/p6_attacks_fedavg.yaml configs/sweeps/p6_autogm.yaml configs/sweeps/p7_fedguard_tune.yaml configs/sweeps/p6_autogm_nodp.yaml configs/sweeps/e4_conflict_autogm.yaml --shard 0/2   (and --shard 1/2)
+Phase 7 launch (after Phase 6 done):
+  python scripts/run_experiments.py --sweep configs/sweeps/p7_fedguard_main.yaml --shard 0/2   (and --shard 1/2)
+Phase 8 launch (after Phase 7 done):
+  python scripts/run_experiments.py --sweep configs/sweeps/p8_e5_ablation.yaml --shard 0/2   (and --shard 1/2)
 Phase 5 DONE (docs/phase_notes/P5_dp.md).
 
 ## Training facts (Phase 3)

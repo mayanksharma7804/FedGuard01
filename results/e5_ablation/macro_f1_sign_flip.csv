@@ -1,0 +1,6 @@
+method,0.1000,0.5000,100.0000
+AutoGM,0.0123,0.0348,0.1679
+FedAvg,0.0347,0.1367,0.1667
+FedGuard-linear+R4,0.0531,0.1105,0.1680
+FedGuard-quadrature,0.0437,0.1019,0.1692
+FedGuard-quadrature+R4,0.0122,0.1315,0.1680

@@ -1,0 +1,14 @@
+# Phase 8 / E5: FedGuard vs AutoGM vs FedAvg ablation - vary alpha (non-IID) under attack.
+# E6 / E7 combined: mode (linear vs quadrature) x R4 (with/without) x sign_flip only (worst case).
+# K = 10, eps 3, seed 42 only (speed), alpha in {0.1, 0.5, 100}.
+base: configs/k10_base.yaml
+set:
+  name: e5_ablation
+grid:
+  fl.alpha: [0.1, 0.5, 100]
+  fl.aggregator: [{name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0},
+                  {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0},
+                  {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20},
+                  {name: autogm, lam_scale: 4.0, outer: 20},
+                  {name: fedavg}]
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

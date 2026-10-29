@@ -215,12 +215,112 @@ def e4(master, name="e4_conflict"):
         print("macro-F1"); print(piv["test_macro_f1"].round(3).to_string())
 
 
+def fedguard(master):
+    """Phase 7: FedGuard B5 vs AutoGM B3/B4 vs FedAvg - main attack table (macro-F1, HRR, attacker share)."""
+    df = master[master["name"].isin(["b5_fedguard", "p6_attacks", "p7_fedguard_tune"])].copy()
+    # also pull in AutoGM runs from phase 6
+    autogm = master[master["aggregator"] == "autogm"].copy()
+    df = pd.concat([df, autogm], ignore_index=True).drop_duplicates(subset=["run"])
+    if df.empty:
+        print("no fedguard/autogm runs yet"); return
+    out = RES / "b5_fedguard"; out.mkdir(parents=True, exist_ok=True)
+    df["method"] = df.apply(method_label, axis=1)
+    keys = ["test_macro_f1", "test_binary_f1", "test_benign_fpr", "hrr_mean", "attacker_share_mean"]
+    table = df.groupby(["method", "attack"])[keys].agg(["mean", "std", "count"])
+    table.to_csv(out / "summary.csv", float_format="%.4f")
+    print("=== FedGuard vs AutoGM vs FedAvg - attack table ===")
+    print(df.groupby(["method", "attack"])[["test_macro_f1", "hrr_mean", "attacker_share_mean"]]
+          .mean().round(3).to_string())
+    att = [a for a in ATTACK_ORDER if a in set(df["attack"])]
+    methods = sorted(df["method"].unique())
+    colors = ["#1F3A5F", "#2A9D8F", "#6D597A", "#E9A23B", "#E76F51", "#8D99AE"]
+    fig, axes = plt.subplots(1, 3, figsize=(15, 3.8))
+    for ax, (metric, label) in zip(axes, [("test_macro_f1", "test macro-F1"),
+                                          ("hrr_mean", "honest rejection rate"),
+                                          ("attacker_share_mean", "attacker weight share")]):
+        w = 0.8 / max(len(methods), 1); x = np.arange(len(att))
+        for i, (mth, c) in enumerate(zip(methods, colors)):
+            vals = [df[(df.method == mth) & (df.attack == a)][metric].mean() for a in att]
+            ax.bar(x + (i - (len(methods) - 1) / 2) * w, vals, w, color=c, label=mth)
+        ax.set_xticks(x); ax.set_xticklabels(att); ax.set_ylabel(label); ax.grid(axis="y", color="#eee")
+    axes[0].legend(frameon=False, fontsize=7)
+    fig.suptitle("FedGuard vs AutoGM vs FedAvg under attacks (K=10, alpha=0.5, eps=3)", fontsize=10)
+    fig.tight_layout(); fig.savefig(FIG / "b5_fedguard_vs_autogm.png", dpi=150); plt.close(fig)
+
+    # trust-weight distribution plot: FedGuard vs AutoGM under sign_flip
+    for agg_name, label in [("fedguard", "FedGuard"), ("autogm", "AutoGM (lam_scale=4)")]:
+        sub = df[(df["aggregator"] == agg_name) & (df["attack"] == "sign_flip")]
+        if sub.empty:
+            continue
+        weight_files = [RES / "runs" / r / "weights.csv" for r in sub["run"] if (RES / "runs" / r / "weights.csv").exists()]
+        if not weight_files:
+            continue
+        wdf = pd.concat([pd.read_csv(f) for f in weight_files], ignore_index=True)
+        if "client_id" not in wdf.columns or "weight" not in wdf.columns:
+            continue
+        fig, ax = plt.subplots(figsize=(7, 3.4))
+        for cid, g in wdf.groupby("client_id"):
+            lbl = "attacker" if g["is_attacker"].iloc[0] else "honest"
+            col = "#E76F51" if g["is_attacker"].iloc[0] else "#2A9D8F"
+            ax.plot(g["round"], g["weight"], color=col, alpha=0.4, lw=0.8, label=lbl)
+        handles = [plt.Line2D([0], [0], color="#E76F51", label="attacker"),
+                   plt.Line2D([0], [0], color="#2A9D8F", label="honest")]
+        ax.legend(handles=handles, frameon=False, fontsize=8)
+        ax.set_xlabel("round"); ax.set_ylabel("aggregation weight")
+        ax.set_title(f"{label}: client weights under 30% sign-flip attackers (mean over seeds)", fontsize=10)
+        fig.tight_layout(); fig.savefig(FIG / f"weights_{agg_name}_sign_flip.png", dpi=150); plt.close(fig)
+    print("figures -> results/figures/b5_fedguard_vs_autogm.png + weights_*.png")
+
+
+def ablation(master):
+    """Phase 8 / E5-E7: FedGuard mode x R4 x alpha ablation under sign_flip (worst case)."""
+    df = master[master["name"] == "e5_ablation"].copy()
+    if df.empty:
+        print("no e5_ablation runs yet"); return
+    out = RES / "e5_ablation"; out.mkdir(parents=True, exist_ok=True)
+
+    def agg_label(row):
+        agg = row["aggregator"]
+        if agg == "fedavg":
+            return "FedAvg"
+        if agg == "autogm":
+            return "AutoGM"
+        mode = row.get("agg_mode", "?")
+        r4 = "+R4" if row.get("noise_tol_z", 0) > 0 else ""
+        return f"FedGuard-{mode}{r4}"
+
+    df["method"] = df.apply(agg_label, axis=1)
+    keys = ["test_macro_f1", "hrr_mean", "attacker_share_mean"]
+    for attack in ["none", "sign_flip"]:
+        sub = df[df["attack"] == attack]
+        if sub.empty:
+            continue
+        piv = sub.pivot_table(index="method", columns="alpha", values="test_macro_f1", aggfunc="mean")
+        piv.to_csv(out / f"macro_f1_{attack}.csv", float_format="%.4f")
+        print(f"Attack={attack}: macro-F1 by method x alpha")
+        print(piv.round(3).to_string())
+        fig, ax = plt.subplots(figsize=(8, 3.6))
+        alphas = sorted(sub["alpha"].unique()); x = np.arange(len(alphas))
+        methods = list(piv.index); colors = ["#1F3A5F", "#2A9D8F", "#6D597A", "#E9A23B", "#E76F51"]
+        w = 0.8 / max(len(methods), 1)
+        for i, (mth, c) in enumerate(zip(methods, colors)):
+            vals = [sub[(sub.method == mth) & (sub.alpha == a)]["test_macro_f1"].mean() for a in alphas]
+            ax.bar(x + (i - (len(methods) - 1) / 2) * w, vals, w, color=c, label=mth)
+        ax.set_xticks(x); ax.set_xticklabels([f"alpha={a:g}" for a in alphas])
+        ax.set_ylabel("test macro-F1"); ax.legend(frameon=False, fontsize=7); ax.grid(axis="y", color="#eee")
+        ax.set_title(f"Ablation: method x non-IID level, attack={attack}, eps=3", fontsize=10)
+        fig.tight_layout(); fig.savefig(FIG / f"e5_ablation_{attack}.png", dpi=150); plt.close(fig)
+    print("figures -> results/figures/e5_ablation_*.png")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--attacks", action="store_true")
     ap.add_argument("--e4", action="store_true")
     ap.add_argument("--b1", action="store_true")
     ap.add_argument("--b2", action="store_true")
+    ap.add_argument("--fedguard", action="store_true")
+    ap.add_argument("--ablation", action="store_true")
     args = ap.parse_args()
     master = pd.read_csv(RES / "master.csv")
     if args.b1:
@@ -231,6 +331,10 @@ def main():
         attacks(master)
     if args.e4:
         e4(master)
+    if args.fedguard:
+        fedguard(master)
+    if args.ablation:
+        ablation(master)
 
 
 if __name__ == "__main__":

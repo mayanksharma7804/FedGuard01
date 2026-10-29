@@ -1,0 +1,11 @@
+# Phase 7 / B5: FedGuard (best config from p7_fedguard_tune) on the full attack grid.
+# Best config = quadrature + R4 (noise_tol_z 3.0): picks up where AutoGM fails on sign_flip under DP.
+# K = 10, alpha 0.5, eps 3, 3 seeds, 30% attackers - same grid as p6_autogm.yaml for paired comparison.
+base: configs/k10_base.yaml
+set:
+  fl: {aggregator: {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0}}
+  name: b5_fedguard
+grid:
+  seed: [42, 43, 44]
+  attack: [{type: none, fraction: 0.0}, {type: label_flip, fraction: 0.3}, {type: sign_flip, fraction: 0.3},
+           {type: gaussian, fraction: 0.3}]

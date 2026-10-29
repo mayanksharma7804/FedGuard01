@@ -15,9 +15,9 @@ fl:
   clients: 10
   alpha: 0.5
   local_epochs: 5
-  max_rounds: 40
-  patience: 15
-  min_rounds: 10
+  max_rounds: 20
+  patience: 5
+  min_rounds: 5
   aggregator: {name: fedavg}
 dp:
   epsilon: 3.0

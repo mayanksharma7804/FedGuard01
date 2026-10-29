@@ -35,6 +35,9 @@ def row(run_dir):
          "sigma_max": max(test["sigma_per_client"]) if test.get("sigma_per_client") else None,
          # robustness (Phase 6+): averaged over all rounds of the run
          "agg_params": json.dumps({k: v for k, v in cfg["fl"]["aggregator"].items() if k != "name"}, sort_keys=True),
+         "agg_mode": cfg["fl"]["aggregator"].get("mode"),
+         "noise_tol_z": cfg["fl"]["aggregator"].get("noise_tol_z"),
+         "lam_scale": cfg["fl"]["aggregator"].get("lam_scale"),
          "hrr_mean": test.get("hrr_mean"), "attacker_share_mean": test.get("attacker_share_mean"),
          "n_attackers": len(test.get("attackers") or [])}
     r.update({f"test_{m}": test[m] for m in METRICS})
