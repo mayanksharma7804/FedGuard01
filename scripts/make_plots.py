@@ -85,7 +85,10 @@ def b1(master):
 
 
 def eps_label(e):
-    return "inf (no DP)" if pd.isna(e) else f"{e:g}"
+    try:
+        return "inf (no DP)" if pd.isna(e) else f"{float(e):g}"
+    except (TypeError, ValueError):
+        return str(e)
 
 
 def b2(master):
@@ -94,7 +97,10 @@ def b2(master):
         print("no b2_dpfedavg runs yet"); return
     out = RES / "b2_dpfedavg"; out.mkdir(parents=True, exist_ok=True)
     df["eps_key"] = df["epsilon"].fillna(np.inf)
-    order = sorted(df["eps_key"].unique(), reverse=True)             # inf, 8, 3, 1
+    def _eps_sort_key(x):
+        try: return -float(x)
+        except: return -np.inf
+    order = sorted(df["eps_key"].unique(), key=_eps_sort_key)  # inf, 8, 3, 1
     keys = KEYS + ["epsilon_spent_max", "sigma_min", "sigma_max", "best_round", "rounds_run", "seconds_per_round"]
     table = df.groupby("eps_key")[keys].agg(["mean", "std", "count"]).loc[order]
     table.to_csv(out / "summary_by_epsilon.csv", float_format="%.4f")
