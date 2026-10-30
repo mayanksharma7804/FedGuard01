@@ -1,7 +1,7 @@
 # Run Phase 7 then Phase 8 sequentially - ONE SHARD AT A TIME to avoid GPU deadlock (F41).
 # Launch: powershell -ExecutionPolicy Bypass -File scripts\run_phases_7_8.ps1
-$python = "D:\Hokage X Pirate king\mayank\Project_Final\.venv\Scripts\python.exe"
-$root   = "D:\Hokage X Pirate king\mayank\Project_Final"
+$root   = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$python = Join-Path $root ".venv\Scripts\python.exe"
 
 function Run-Shard {
     param($sweep, $shard, $logFile)

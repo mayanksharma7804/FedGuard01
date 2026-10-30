@@ -26,11 +26,13 @@ FedGuard is a federated learning aggregation algorithm designed for network intr
 |---|---|---|---|---|
 | FedAvg (no DP) | none | 0.435 | 0.537 | 0.603 |
 | FedAvg + DP ε=3 | none | 0.108 | 0.171 | 0.200 |
-| AutoGM + DP ε=3 | sign_flip 30% | 0.012 | 0.035 | 0.168 |
-| **FedGuard + DP ε=3** | **sign_flip 30%** | **0.012** | **0.132** | **0.168** |
-| **FedGuard + DP ε=3** | **gaussian 30%** | **0.176** | — | — |
+| AutoGM + DP ε=3 | sign_flip 30% | 0.012* | 0.035 | 0.168 |
+| **FedGuard + DP ε=3** | **sign_flip 30%** | **0.012*** | **0.132** | **0.168** |
+| **FedGuard + DP ε=3** | **gaussian 30%** | — | **0.176** | — |
 
-FedGuard outperforms AutoGM most on Gaussian attacks (+94 macro-F1 pts at α=0.1), because the R4 noise-tolerance zone correctly distinguishes DP noise from attack signal.
+\* At α=0.1 with ε=3, both models near-collapse (macro-F1 ≈ 0.012); the comparison is not meaningful here. FedGuard's gains are clearest at α=0.5.
+
+FedGuard outperforms AutoGM most on Gaussian attacks at α=0.5 (0.176 vs 0.152 macro-F1), because R4 correctly tolerates DP noise while flagging Gaussian attack signal.
 
 All results in `results/master.csv` (181 federated runs). Figures in `results/figures/`.
 

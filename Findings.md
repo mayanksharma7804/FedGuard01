@@ -1,4 +1,4 @@
-# FedGuard - Findings log
+﻿# FedGuard - Findings log
 
 Every finding of the project, in the order we found it: **what we did, what we found, the evidence,
 and what we decided**. This file feeds the report (Methodology, Results, Limitations) and the viva.
@@ -140,7 +140,7 @@ It is updated after every phase.
 ### F12
 **Rare classes become very small after cleaning.**
 - **What we did:** Counted classes after de-duplication, the stratified split and the 20k/class training cap.
-- **What we found:** Train / val / test rows - Benign 20,000 / 5,519 / 13,797 · Exploits 15,734 / 1,748 / 4,371 · Fuzzers 4,856 / 540 / 1,349 · DoS 2,234 / 249 / 621 · Generic 1,241 / 138 / 345 · Analysis 524 / 58 / 146 · Reconnaissance 246 / 27 / 68 · Backdoor 200 / 22 / 55 · Shellcode 154 / 17 / 43 · **Worms 36 / 4 / 10**.
+- **What we found:** Train / val / test rows - Benign 20,000 / 5,519 / 13,797 Â· Exploits 15,734 / 1,748 / 4,371 Â· Fuzzers 4,856 / 540 / 1,349 Â· DoS 2,234 / 249 / 621 Â· Generic 1,241 / 138 / 345 Â· Analysis 524 / 58 / 146 Â· Reconnaissance 246 / 27 / 68 Â· Backdoor 200 / 22 / 55 Â· Shellcode 154 / 17 / 43 Â· **Worms 36 / 4 / 10**.
 - **Decision / impact:** Per-class scores for Worms, Shellcode, Backdoor and Reconnaissance will be noisy (a few test rows). Report them with that caveat; do not drop them. Macro-F1 stays the main metric. With alpha = 0.1 and 10 clients, some clients hold only 2-3 classes and the smallest has 215 rows.
 
 ### F13
@@ -158,7 +158,7 @@ It is updated after every phase.
 ### F15
 **The CICIoT2023 copy is a third-party pre-split subset (check pending).**
 - **What we did:** Inspected the Kaggle copy (himadri07/ciciot2023).
-- **What we found:** train 5,491,971 · validation 1,176,851 · test 1,176,851 rows (7.85M of the original ~46M), 46 features, 34 classes.
+- **What we found:** train 5,491,971 Â· validation 1,176,851 Â· test 1,176,851 rows (7.85M of the original ~46M), 46 features, 34 classes.
 - **Decision / impact:** Before using it in E8 (Phase 8), check for duplicates *across* the three files; if found, merge, de-duplicate and re-split with our own pipeline. Group 34 labels into 8 classes.
 
 ---
@@ -273,7 +273,7 @@ It is updated after every phase.
 ### F28
 **Under non-IID data, FedAvg's validation curve has deep temporary dips; patience 8 stopped runs in a dip, so B1 was re-run with patience 15.**
 - **What we did:** Ran B1 (FedAvg, E = 5, alpha {0.1, 0.5, 100} x seeds {42, 43, 44}) with patience 8 / max 80 rounds and inspected the learning curves before accepting the numbers.
-- **What we found:** First-pass test macro-F1 - alpha 0.1: 0.380 +/- 0.006 · alpha 0.5: 0.516 +/- **0.058** · alpha 100: 0.573 +/- 0.022. The large alpha 0.5 spread came partly from early stopping: seed 43's validation macro-F1 dropped to **0.187** in one round and was **recovering** (0.368 -> 0.444 -> 0.465) when patience ran out; seed 44 was still at its best when stopped; one alpha 100 run peaked at round 78 of 80. (Alpha 0.5 runs use different partitions per seed, so some spread is real.)
+- **What we found:** First-pass test macro-F1 - alpha 0.1: 0.380 +/- 0.006 Â· alpha 0.5: 0.516 +/- **0.058** Â· alpha 100: 0.573 +/- 0.022. The large alpha 0.5 spread came partly from early stopping: seed 43's validation macro-F1 dropped to **0.187** in one round and was **recovering** (0.368 -> 0.444 -> 0.465) when patience ran out; seed 44 was still at its best when stopped; one alpha 100 run peaked at round 78 of 80. (Alpha 0.5 runs use different partitions per seed, so some spread is real.)
 - **Decision / impact:** Patience raised to **15 rounds**, max rounds to **120**, for all federated baselines; first-pass runs moved to `results/runs/_superseded_patience8_F28/` (kept for the record) and B1 re-run. Same lesson as F18: always check curves before trusting an early-stopped number. Final B1 numbers: see F29.
 
 ### F29
@@ -460,20 +460,24 @@ It is updated after every phase.
 
 
 ### F42
-**Phase 7 (B5 FedGuard) completed: 12/12 runs, all 4 attack types across seeds 42-44, DP e=3.**
-- **What we did:** Ran FedGuard (quadrature, k_mad=2.0, lam_scale=1.0, noise_tol_z=3.0) vs AutoGM vs FedAvg on sign_flip / label_flip / gaussian / none attacks at fraction=0.3.
-- **What we found:** FedGuard outperforms AutoGM most on gaussian attack (0.176 vs 0.082 macro-F1), because R4 (noise_tol_z) correctly tolerates DP noise and flags the Gaussian attack signal. On sign_flip, FedGuard 0.110 vs AutoGM 0.082. Trust-weight attacker_share_mean drops from 0.30 to ~0.06 on sign_flip � down-weighting is working. label_flip remains hard for all methods (~0.080-0.106) since corrupted gradients are direction-correct.
-- **Evidence:** esults/figures/b5_fedguard_vs_autogm.png, esults/figures/weights_*.png
-- **Decision:** FedGuard with quadrature+R4 selected as final proposed aggregator.
+**Phase 7 (B5 FedGuard) completed: 12/12 runs, all 4 attack types across seeds 42-44, DP eps=3, alpha=0.5, K=10.**
+- **What we did:** Ran FedGuard (quadrature+R4, k_mad=2.0, lam_scale=1.0, noise_tol_z=3.0) vs AutoGM (lam_scale=4) vs FedAvg on all 4 attack types at fraction=0.3.
+- **What we found (apples-to-apples: 20 rounds, alpha=0.5, eps=3, 3 seeds):** FedGuard clearest win is gaussian attack (macro-F1 0.176 vs FedAvg+DP 0.108, AutoGM 0.152) - R4 correctly tolerates DP noise while flagging Gaussian attack signal. On sign_flip, FedGuard (0.117) edges AutoGM (0.077) but gap comes from one seed where AutoGM collapsed. On clean/label_flip, all methods similar. HRR (share of honest clients under-weighted) stays near 0 for FedGuard; attacker_share_mean (fraction of total weight to attackers) = 0.215 on sign_flip. Note: 29% of runs near-collapse at eps=3 (macro-F1 ~0.080); differences <0.04 in that regime are noise. [Correction: earlier draft incorrectly stated "attacker_share_mean drops from 0.30 to ~0.06" - that was HRR movement, not attacker_share_mean. AutoGM 0.082 was from a no-DP single run; corrected to 0.152 from DP apples-to-apples comparison.]
+- **Evidence:** `results/figures/b5_fedguard_vs_autogm.png`, `results/figures/weights_*_sign_flip.png`
+- **Decision:** FedGuard with quadrature+R4 selected as proposed aggregator. Core hypothesis (mixed-eps advantage) tested in Phase 9 (F45).
 
 ### F43
-**Phase 8 (E5 ablation) completed: 30/30 runs (a�agg�attack grid, seed=42, DP e=3).**
-- **What we did:** Ablated FedGuard mode (quadrature vs linear), R4 presence, and non-IID level (a=0.1/0.5/100) against AutoGM and FedAvg baselines.
-- **What we found:** (1) quadrature vs linear: similar performance at a=0.5; at a=0.1 results are noisy � linear marginally better on sign_flip. (2) R4 ablation: removing noise_tol_z hurts at a=0.5 on sign_flip but surprisingly helps at a=0.1, suggesting R4 z=3.0 is slightly aggressive under extreme non-IID + DP. (3) Alpha sensitivity: all methods degrade at a=0.1; FedGuard provides most relative improvement at a=0.5.
-- **Evidence:** esults/figures/e5_ablation_*.png
-- **Decision:** Keep quadrature+R4 as default; note in thesis that R4 z hyperparameter may need tuning at extreme non-IID.
+**Phase 8 (E5 ablation) completed: 30/30 runs (alpha x agg x attack grid, seed=42, DP eps=3, K=10).**
+- **What we did:** Ablated FedGuard mode (quadrature vs linear), R4 (noise_tol_z) presence, and non-IID level (alpha in {0.1, 0.5, 100}) against AutoGM and FedAvg baselines on clean data and sign_flip.
+- **What we found:** (1) quadrature vs linear: similar at alpha>=0.5; at alpha=0.1 both near-collapse, differences not meaningful. (2) R4 helps at alpha=0.5 on sign_flip; at alpha=0.1 appears slightly over-aggressive with z=3.0 under extreme non-IID+DP noise. (3) All methods degrade severely at alpha=0.1, eps=3. Single seed limits statistical confidence.
+- **Evidence:** `results/figures/e5_ablation_none.png`, `results/figures/e5_ablation_sign_flip.png`
+- **Decision:** Keep quadrature+R4 as default; note R4 z is a tunable hyperparameter for extreme non-IID.
 
 ### F44
-**collect_results and all plots completed successfully. master.csv contains 181 federated runs.**
-- All Phase 1-8 figures generated in esults/figures/. Phase notes written for P6, P7, P8.
-- Next: git push to GitHub.
+**All figures regenerated and figure bugs fixed (audit Oct 31 2026). master.csv: 181 federated runs.**
+- p6_attacks.png: title now shows all alpha values (was hardcoded alpha=0.1 only).
+- b5_fedguard_vs_autogm.png: now includes FedAvg+DP bars for full 3-way comparison.
+- weights plots: use weights_log.csv with `client` column; properly averaged over seeds.
+- E4 heatmap: includes eps=inf (no-DP) column; e4() fixed to not exclude no-DP runs.
+- 25 figures total in `results/figures/`. Phase notes written for P6, P7, P8.
+- Phase 9 (mixed-eps): 18 runs in progress (FedGuard vs AutoGM vs FedAvg, eps mix 1/3/8). See F45 when complete.
