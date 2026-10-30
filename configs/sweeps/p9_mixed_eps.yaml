@@ -1,0 +1,18 @@
+# Phase 9: Mixed-epsilon FedGuard sweep — the core FedGuard hypothesis test
+# FedGuard handles heterogeneous per-client privacy (mixed eps) better than AutoGM/FedAvg
+# 18 runs: 3 aggs x 2 attacks x 3 seeds, alpha=0.5, K=10, mixed eps {1,3,8}
+base: configs/k10_base.yaml
+set:
+  name: p9_mixed_eps
+  dp:
+    epsilon: [1.0, 3.0, 8.0]
+    clip: 2.0
+grid:
+  seed: [42, 43, 44]
+  fl.aggregator:
+    - {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0}
+    - {name: autogm, lam_scale: 4.0, outer: 20}
+    - {name: fedavg}
+  attack:
+    - {type: none, fraction: 0.0}
+    - {type: sign_flip, fraction: 0.3}

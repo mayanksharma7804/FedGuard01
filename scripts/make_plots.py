@@ -189,18 +189,24 @@ def attacks(master, name="k10"):
             ax.bar(x + (i - (len(methods) - 1) / 2) * w, vals, w, color=c, label=mth)
         ax.set_xticks(x); ax.set_xticklabels(att); ax.set_ylabel(label); ax.grid(axis="y", color="#eee")
     axes[0].legend(frameon=False, fontsize=7)
+    alphas = sorted(df["alpha"].unique())
+    alpha_str = "/".join(f"{a:g}" for a in alphas)
     fig.suptitle(f"Attacks ({df.attack_fraction.max():g} of clients) vs aggregators - K = {df.clients.iloc[0]}, "
-                 f"alpha = {df.alpha.iloc[0]:g}", fontsize=10)
+                 f"alpha = {alpha_str} (mean over alpha/seeds)", fontsize=10)
     fig.tight_layout(); fig.savefig(FIG / "p6_attacks.png", dpi=150); plt.close(fig)
     print(f"figure -> results/figures/p6_attacks.png, table -> results/p6_attacks/summary.csv")
 
 
 def e4(master, name="k10"):
-    df = master[(master["name"] == name) & (master["attack"] == "none") & master["epsilon"].notna()].copy()
+    df = master[(master["name"] == name) & (master["attack"] == "none")].copy()
     if df.empty:
         print(f"no e4 (epsilon x alpha conflict) runs yet"); return
     out = RES / "e4_conflict"; out.mkdir(parents=True, exist_ok=True)
-    df["eps"] = df["epsilon"].fillna("inf").astype(str)
+    def _eps_str(x):
+        if pd.isna(x): return "inf"
+        try: return str(float(x))
+        except (ValueError, TypeError): return str(x)
+    df["eps"] = df["epsilon"].apply(_eps_str)
     eps_order = [e for e in ["inf", "8.0", "3.0", "1.0", "mix:1-3-8"] if e in set(df["eps"])]
     for agg, g in df.groupby("aggregator"):
         piv = {m: g.pivot_table(index="alpha", columns="eps", values=m, aggfunc="mean").reindex(columns=eps_order)
@@ -222,11 +228,16 @@ def e4(master, name="k10"):
 
 
 def fedguard(master):
-    """Phase 7: FedGuard B5 vs AutoGM B3/B4 vs FedAvg - main attack table (macro-F1, HRR, attacker share)."""
-    df = master[master["name"].isin(["b5_fedguard", "p6_attacks", "p7_fedguard_tune"])].copy()
-    # also pull in AutoGM runs from phase 6
-    autogm = master[master["aggregator"] == "autogm"].copy()
-    df = pd.concat([df, autogm], ignore_index=True).drop_duplicates(subset=["run"])
+    """Phase 7: FedGuard B5 vs AutoGM vs FedAvg - main attack table (macro-F1, HRR, attacker share).
+    Uses b5_fedguard runs (FedGuard only), plus AutoGM and FedAvg from k10 at eps=3, alpha=0.5 as baselines.
+    """
+    b5 = master[master["name"] == "b5_fedguard"].copy()
+    # Pull matching AutoGM and FedAvg baselines from k10 (eps=3, alpha=0.5, 20-round runs)
+    k10 = master[(master["name"] == "k10") & (master["epsilon"].astype(str) == "3.0")
+                 & (master["alpha"] == 0.5) & (master["rounds_run"] <= 20)].copy()
+    df = pd.concat([b5, k10], ignore_index=True).drop_duplicates(subset=["run"])
+    if df.empty:
+        print("no fedguard/autogm runs yet"); return
     if df.empty:
         print("no fedguard/autogm runs yet"); return
     out = RES / "b5_fedguard"; out.mkdir(parents=True, exist_ok=True)
@@ -264,16 +275,17 @@ def fedguard(master):
         wdf = pd.concat([pd.read_csv(f) for f in weight_files], ignore_index=True)
         if "client" not in wdf.columns or "weight" not in wdf.columns:
             continue
+        # Average weight per (round, client) across seeds, keep is_attacker flag
+        avg = wdf.groupby(["round", "client"]).agg(weight=("weight", "mean"), is_attacker=("is_attacker", "first")).reset_index()
         fig, ax = plt.subplots(figsize=(7, 3.4))
-        for cid, g in wdf.groupby("client"):
-            lbl = "attacker" if g["is_attacker"].iloc[0] else "honest"
+        for cid, g in avg.groupby("client"):
             col = "#E76F51" if g["is_attacker"].iloc[0] else "#2A9D8F"
-            ax.plot(g["round"], g["weight"], color=col, alpha=0.4, lw=0.8, label=lbl)
+            ax.plot(g["round"], g["weight"], color=col, alpha=0.6, lw=1.2)
         handles = [plt.Line2D([0], [0], color="#E76F51", label="attacker"),
                    plt.Line2D([0], [0], color="#2A9D8F", label="honest")]
         ax.legend(handles=handles, frameon=False, fontsize=8)
-        ax.set_xlabel("round"); ax.set_ylabel("aggregation weight")
-        ax.set_title(f"{label}: client weights under 30% sign-flip attackers (mean over seeds)", fontsize=10)
+        ax.set_xlabel("round"); ax.set_ylabel("aggregation weight (mean over seeds)")
+        ax.set_title(f"{label}: per-client trust weights — 30% sign-flip attackers", fontsize=10)
         fig.tight_layout(); fig.savefig(FIG / f"weights_{agg_name}_sign_flip.png", dpi=150); plt.close(fig)
     print("figures -> results/figures/b5_fedguard_vs_autogm.png + weights_*.png")
 

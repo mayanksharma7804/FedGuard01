@@ -1,27 +1,32 @@
-# Phase 8 — Ablation Study (E5/E6/E7)
+# Phase 8 — Ablation Study (E5)
 
 ## What we did
-30-run ablation over α ∈ {0.1, 0.5, 100} × 5 aggregators × 2 attacks (none, sign_flip), seed=42, DP ε=3.
+30-run ablation over α ∈ {0.1, 0.5, 100} × 5 aggregators × 2 attacks (none, sign_flip), seed=42, DP ε=3, K=10.
 
 ## Aggregators compared
-1. FedGuard-quadrature+R4 (full system)
-2. FedGuard-linear+R4 (linear mode, no quadrature)
-3. FedGuard-quadrature (no R4, no noise_tol_z)
-4. AutoGM (lam_scale=4)
+1. FedGuard-quadrature+R4 (full system: quadrature residual + noise_tol_z=3.0)
+2. FedGuard-linear+R4 (linear residual + noise_tol_z=3.0)
+3. FedGuard-quadrature (no R4: quadrature residual only, no noise_tol_z)
+4. AutoGM (lam_scale=4.0)
 5. FedAvg (baseline)
 
 ## Key findings
+
 **E5 — Mode ablation (quadrature vs linear)**:
-- At α=0.1 (extreme non-IID), quadrature+R4 ≈ linear+R4 on clean data (0.102 vs 0.104), but quadrature edges ahead on sign_flip (0.012 vs 0.053) — wait, linear is better here. Results are noisy at α=0.1 due to extreme heterogeneity.
-- At α=0.5 and α=100, both modes perform similarly; linear+R4 slightly more stable.
+- At α=0.5 and α=100, both modes perform similarly on clean data and sign_flip.
+- At α=0.1 (extreme non-IID), all methods degrade severely; differences are within noise.
 
-**E6 — R4 ablation (noise_tol_z effect)**:
-- FedGuard-quadrature (no R4) vs FedGuard-quadrature+R4: on clean data (attack=none) near-identical; on sign_flip at α=0.1, removing R4 yields 0.044 vs 0.012 — removing R4 actually helps here, but this is likely because R4 is too aggressive with DP noise at extreme non-IID.
-- At α=0.5+, R4 provides consistent protection against sign_flip.
+**R4 ablation (noise_tol_z effect)**:
+- Removing R4 (FedGuard-quadrature vs FedGuard-quadrature+R4): on clean data nearly identical; on sign_flip at α=0.5, R4 provides modest protection. At α=0.1, R4 at z=3.0 appears slightly over-aggressive under extreme non-IID + DP noise.
 
-**E7 — Alpha sensitivity**:
-- All methods degrade severely at α=0.1 due to extreme non-IID; FedAvg surprisingly competitive at α=100 (near-IID) where there's little distributional attack advantage.
-- FedGuard provides most relative gain at α=0.5 (moderate heterogeneity).
+**Alpha sensitivity**:
+- α=0.1: all methods near-collapse at ε=3. Differences not meaningful.
+- α=0.5: moderate heterogeneity; FedGuard provides clearest gains on gaussian attack (Phase 7).
+- α=100: near-IID; FedAvg competitive with any robust aggregator.
+
+## Limitation
+Single seed (42) and one epsilon value (ε=3) limits statistical conclusions. The mixed-ε sweep (Phase 9) directly tests the core FedGuard hypothesis of heterogeneous privacy handling.
 
 ## Plots
-- `results/figures/e5_ablation_*.png`
+- `results/figures/e5_ablation_none.png`
+- `results/figures/e5_ablation_sign_flip.png`
