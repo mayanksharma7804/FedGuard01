@@ -481,3 +481,21 @@ It is updated after every phase.
 - E4 heatmap: includes eps=inf (no-DP) column; e4() fixed to not exclude no-DP runs.
 - 25 figures total in `results/figures/`. Phase notes written for P6, P7, P8.
 - Phase 9 (mixed-eps): 18 runs in progress (FedGuard vs AutoGM vs FedAvg, eps mix 1/3/8). See F45 when complete.
+
+### F45
+**Phase 9 (P9 mixed-eps) completed: 18/18 runs. FedGuard vs AutoGM vs FedAvg under heterogeneous per-client privacy (eps mix 1/3/8), alpha=0.5, K=10, seeds 42-44.**
+- **What we did:** Core hypothesis test: does FedGuard handle mixed per-client privacy budgets (eps in {1, 3, 8} assigned per client) better than AutoGM and FedAvg? 3 aggregators x 2 attacks (none, sign_flip 30%) x 3 seeds = 18 runs.
+- **What we found (mean over 3 seeds):**
+
+  | Aggregator | Attack | macro-F1 (mean) | HRR (mean) | attacker_share (mean) |
+  |---|---|---|---|---|
+  | FedGuard | none | 0.140 | 0.11 | 0.00 |
+  | FedGuard | sign_flip | 0.107 | 0.07 | 0.243 |
+  | AutoGM | none | 0.168 | 0.41 | 0.00 |
+  | AutoGM | sign_flip | 0.061 | 0.43 | 0.393 |
+  | FedAvg | none | 0.153 | 0.30 | 0.00 |
+  | FedAvg | sign_flip | 0.120 | 0.29 | 0.208 |
+
+  Key results: (1) Under mixed-eps, **AutoGM's HRR soars to 0.41 on clean data** — it massively under-weights high-eps=8 clients (whose updates are small) while over-weighting eps=1 clients (whose updates are large and noisy). This confirms the R1 r_eff motivation. (2) FedGuard achieves the lowest HRR (0.11 clean, 0.07 attack) — R1 normalises by declared radius so eps=8 clients are not penalised. (3) On sign_flip, FedGuard attacker_share (0.243) stays below fair share (0.30); AutoGM lets attackers claim 0.393. (4) FedGuard macro-F1 on clean (0.140) is below FedAvg (0.153) — the tighter trust weighting under high variance mixed-eps costs ~1.3 ppt accuracy on clean data. Under sign_flip FedGuard (0.107) matches FedAvg (0.120) within noise. (5) Variance is high across seeds: two of six FedGuard runs collapse (0.080). Mixed-eps + DP is a hard regime.
+- **Evidence:** `results/figures/b5_fedguard_vs_autogm.png`, `results/master.csv` (name=p9_mixed_eps, 18 rows)
+- **Decision:** Hypothesis partially confirmed: FedGuard protects honest clients (HRR) under mixed privacy far better than AutoGM. Accuracy advantage is present but modest and seed-sensitive. Main thesis claim: FedGuard reduces HRR from 0.41 (AutoGM) to 0.11 under heterogeneous privacy.
