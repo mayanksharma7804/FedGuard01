@@ -1,10 +1,10 @@
 # Thermal guard for long training runs on the laptop (keeps CPU and GPU at or below ~80 C).
-# Every 60 s it reads the CPU thermal zone and the GPU temperature. When either reaches -High, it creates
+# Every 25 s it reads the CPU thermal zone and the GPU temperature. When either reaches -High, it creates
 # results\runs\THROTTLE: the training jobs then wait before their next client (GPU and CPU idle) until the
 # hottest sensor is back at -Low, when the file is removed. Waiting never changes a result.
 # Started automatically by queue_start.ps1; it exits by itself when no training job is left.
-#   powershell -ExecutionPolicy Bypass -File scripts\windows\thermal_guard.ps1 [-High 75] [-Low 68] [-Every 60]
-param([int]$High = 75, [int]$Low = 68, [int]$Every = 60)
+#   powershell -ExecutionPolicy Bypass -File scripts\windows\thermal_guard.ps1 [-High 75] [-Low 68] [-Every 25]
+param([int]$High = 75, [int]$Low = 68, [int]$Every = 25)
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $Throttle = Join-Path $Repo "results\runs\THROTTLE"
 $Log = Join-Path $Repo "logs\thermal.log"

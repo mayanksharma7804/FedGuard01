@@ -2,7 +2,7 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1           # 1 job (default, cool)
 #   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1 -Jobs 2   # 2 jobs (faster, hotter)
 # Each job uses at most -Threads CPU threads, and the thermal guard (thermal_guard.ps1) makes the jobs wait
-# whenever the CPU or GPU reaches -High C (default 75, checked once a minute) until they are back at -Low C (default 68).
+# whenever the CPU or GPU reaches -High C (default 75, checked every 25 s) until they are back at -Low C (default 68).
 # Safe to run again at any time: finished runs are skipped and interrupted runs resume from their checkpoint.
 param([int]$Jobs = 1, [int]$Threads = 2, [int]$High = 75, [int]$Low = 68)
 $ErrorActionPreference = "Stop"

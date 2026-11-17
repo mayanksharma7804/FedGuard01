@@ -78,7 +78,7 @@ rounds 1 and 3 of the E=1 demo - set the frozen F50 settings, re-test 10 rounds,
 - `python scripts/run_centralised.py` (skips finished runs; live log in results/runs/<run>/train.log).
 - Decide designs on the VALIDATION split only: `python scripts/compare_runs.py --glob "<pattern>"`.
 - Run ONE training job (F49): the CPU overheats with 2 (95 C); 1 job with turbo off gives the same throughput.
-  Thermal guard (scripts/windows/thermal_guard.ps1, started by queue_start.ps1) pauses jobs at 75 C, resumes at 68 C, checks once a minute (user request).
+  Thermal guard (scripts/windows/thermal_guard.ps1, started by queue_start.ps1) pauses jobs at 75 C, resumes at 68 C, checks every 25 s (user request).
   Turbo is off on AC (max processor state 99%); restore: powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
 
 ## Data facts (Phase 2)
