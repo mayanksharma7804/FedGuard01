@@ -1,10 +1,10 @@
-﻿# FedGuard - Findings log
+# FedGuard - Findings log
 
 Every finding of the project, in the order we found it: **what we did, what we found, the evidence,
 and what we decided**. This file feeds the report (Methodology, Results, Limitations) and the viva.
 It is updated after every phase.
 
-**Status:** Phases 1-5 complete; Phase 6 paused at 30 of 69 runs (9 Oct 2026, 07:22, clean stop between runs; resume with the Phase 6 queue command in CLAUDE.md).
+**Status (17 Nov 2026):** Phases 1-5 complete. Phase 6 partly valid (40-round runs); the 20-round Phase 6-9 runs of 21-31 Oct are superseded (F46) and are being re-run with the documented 40-round budget, after FedGuard is tuned on validation (F48). F42-F45 are kept for the record but their numbers and several conclusions are withdrawn (F46, F47).
 
 | ID | Phase | Finding (one line) | Type |
 |---|---|---|---|
@@ -49,6 +49,13 @@ It is updated after every phase.
 | [F39](#f39) | 6 | **AutoGM under DP has no good lambda: small lambda collapses onto one client (HRR 0.90), large lambda lets sign-flip attackers keep ~32% of the weight**; lambda_scale = 4 chosen | Result |
 | [F40](#f40) | 6 | Fast plan (team request): fewer attacker fractions, seeds and epsilon levels; ~2-2.5 days of GPU instead of ~6 | Decision |
 | [F41](#f41) | 6 | A charger connect/disconnect burst made the NVIDIA driver fail; both trainings hung silently for ~3 h 50 min; watchdog added | Measurement |
+| [F42](#f42) | 7 | ~~B5 FedGuard grid at 20 rounds~~ - superseded by F46 | Superseded |
+| [F43](#f43) | 8 | ~~E5 ablation at 20 rounds, seed 42~~ - superseded by F46 | Superseded |
+| [F44](#f44) | 8 | Figure fixes (31 Oct); figures built from 20-round runs are superseded by F46 | Superseded |
+| [F45](#f45) | 9 | ~~Mixed-eps test at 20 rounds~~ - superseded by F46; its main claim is reversed (F47) | Superseded |
+| [F46](#f46) | 6-9 | **The 20-round / patience-5 / min-5 setting stopped DP runs during their "all Benign" warm-up; 40 rounds beat 20 in 31 of 32 paired configs (+0.063 macro-F1); 129 runs superseded** | Bug |
+| [F47](#f47) | 9 | **Under mixed privacy AutoGM gives weight 0 to the four MOST private (eps 1) clients, not the eps 8 ones as F45 said; FedGuard keeps them** | Result |
+| [F48](#f48) | 7 | FedGuard's allowance s collapses to 0 under DP (more than half the residuals are hidden by noise); optional floor s_floor = "noise" added and tuned on validation | Method |
 
 ---
 
@@ -140,7 +147,7 @@ It is updated after every phase.
 ### F12
 **Rare classes become very small after cleaning.**
 - **What we did:** Counted classes after de-duplication, the stratified split and the 20k/class training cap.
-- **What we found:** Train / val / test rows - Benign 20,000 / 5,519 / 13,797 Â· Exploits 15,734 / 1,748 / 4,371 Â· Fuzzers 4,856 / 540 / 1,349 Â· DoS 2,234 / 249 / 621 Â· Generic 1,241 / 138 / 345 Â· Analysis 524 / 58 / 146 Â· Reconnaissance 246 / 27 / 68 Â· Backdoor 200 / 22 / 55 Â· Shellcode 154 / 17 / 43 Â· **Worms 36 / 4 / 10**.
+- **What we found:** Train / val / test rows - Benign 20,000 / 5,519 / 13,797 · Exploits 15,734 / 1,748 / 4,371 · Fuzzers 4,856 / 540 / 1,349 · DoS 2,234 / 249 / 621 · Generic 1,241 / 138 / 345 · Analysis 524 / 58 / 146 · Reconnaissance 246 / 27 / 68 · Backdoor 200 / 22 / 55 · Shellcode 154 / 17 / 43 · **Worms 36 / 4 / 10**.
 - **Decision / impact:** Per-class scores for Worms, Shellcode, Backdoor and Reconnaissance will be noisy (a few test rows). Report them with that caveat; do not drop them. Macro-F1 stays the main metric. With alpha = 0.1 and 10 clients, some clients hold only 2-3 classes and the smallest has 215 rows.
 
 ### F13
@@ -158,7 +165,7 @@ It is updated after every phase.
 ### F15
 **The CICIoT2023 copy is a third-party pre-split subset (check pending).**
 - **What we did:** Inspected the Kaggle copy (himadri07/ciciot2023).
-- **What we found:** train 5,491,971 Â· validation 1,176,851 Â· test 1,176,851 rows (7.85M of the original ~46M), 46 features, 34 classes.
+- **What we found:** train 5,491,971 · validation 1,176,851 · test 1,176,851 rows (7.85M of the original ~46M), 46 features, 34 classes.
 - **Decision / impact:** Before using it in E8 (Phase 8), check for duplicates *across* the three files; if found, merge, de-duplicate and re-split with our own pipeline. Group 34 labels into 8 classes.
 
 ---
@@ -273,7 +280,7 @@ It is updated after every phase.
 ### F28
 **Under non-IID data, FedAvg's validation curve has deep temporary dips; patience 8 stopped runs in a dip, so B1 was re-run with patience 15.**
 - **What we did:** Ran B1 (FedAvg, E = 5, alpha {0.1, 0.5, 100} x seeds {42, 43, 44}) with patience 8 / max 80 rounds and inspected the learning curves before accepting the numbers.
-- **What we found:** First-pass test macro-F1 - alpha 0.1: 0.380 +/- 0.006 Â· alpha 0.5: 0.516 +/- **0.058** Â· alpha 100: 0.573 +/- 0.022. The large alpha 0.5 spread came partly from early stopping: seed 43's validation macro-F1 dropped to **0.187** in one round and was **recovering** (0.368 -> 0.444 -> 0.465) when patience ran out; seed 44 was still at its best when stopped; one alpha 100 run peaked at round 78 of 80. (Alpha 0.5 runs use different partitions per seed, so some spread is real.)
+- **What we found:** First-pass test macro-F1 - alpha 0.1: 0.380 +/- 0.006 · alpha 0.5: 0.516 +/- **0.058** · alpha 100: 0.573 +/- 0.022. The large alpha 0.5 spread came partly from early stopping: seed 43's validation macro-F1 dropped to **0.187** in one round and was **recovering** (0.368 -> 0.444 -> 0.465) when patience ran out; seed 44 was still at its best when stopped; one alpha 100 run peaked at round 78 of 80. (Alpha 0.5 runs use different partitions per seed, so some spread is real.)
 - **Decision / impact:** Patience raised to **15 rounds**, max rounds to **120**, for all federated baselines; first-pass runs moved to `results/runs/_superseded_patience8_F28/` (kept for the record) and B1 re-run. Same lesson as F18: always check curves before trusting an early-stopped number. Final B1 numbers: see F29.
 
 ### F29
@@ -460,6 +467,8 @@ It is updated after every phase.
 
 
 ### F42
+> **SUPERSEDED (17 Nov 2026, F46):** this entry used the 20-round / patience-5 / min-5 setting, which stopped many DP runs at round 6 during the warm-up. Its numbers are not valid results and are kept only as a record. Also withdrawn: the claim that R4 'flags Gaussian attack signal' (AutoGM's apparent loss on gaussian came from one run stopped at round 6), and quadrature+R4 was not the best variant on validation (linear+R4 had the higher mean val macro-F1, 0.142 vs 0.137).
+
 **Phase 7 (B5 FedGuard) completed: 12/12 runs, all 4 attack types across seeds 42-44, DP eps=3, alpha=0.5, K=10.**
 - **What we did:** Ran FedGuard (quadrature+R4, k_mad=2.0, lam_scale=1.0, noise_tol_z=3.0) vs AutoGM (lam_scale=4) vs FedAvg on all 4 attack types at fraction=0.3.
 - **What we found (apples-to-apples: 20 rounds, alpha=0.5, eps=3, 3 seeds):** FedGuard clearest win is gaussian attack (macro-F1 0.176 vs FedAvg+DP 0.108, AutoGM 0.152) - R4 correctly tolerates DP noise while flagging Gaussian attack signal. On sign_flip, FedGuard (0.117) edges AutoGM (0.077) but gap comes from one seed where AutoGM collapsed. On clean/label_flip, all methods similar. HRR (share of honest clients under-weighted) stays near 0 for FedGuard; attacker_share_mean (fraction of total weight to attackers) = 0.215 on sign_flip. Note: 29% of runs near-collapse at eps=3 (macro-F1 ~0.080); differences <0.04 in that regime are noise. [Correction: earlier draft incorrectly stated "attacker_share_mean drops from 0.30 to ~0.06" - that was HRR movement, not attacker_share_mean. AutoGM 0.082 was from a no-DP single run; corrected to 0.152 from DP apples-to-apples comparison.]
@@ -467,6 +476,8 @@ It is updated after every phase.
 - **Decision:** FedGuard with quadrature+R4 selected as proposed aggregator. Core hypothesis (mixed-eps advantage) tested in Phase 9 (F45).
 
 ### F43
+> **SUPERSEDED (17 Nov 2026, F46):** this entry used the 20-round / patience-5 / min-5 setting, which stopped many DP runs at round 6 during the warm-up. Its numbers are not valid results and are kept only as a record. This was also not the plan's E5 (main attack table) but a single-seed ablation (plan E6).
+
 **Phase 8 (E5 ablation) completed: 30/30 runs (alpha x agg x attack grid, seed=42, DP eps=3, K=10).**
 - **What we did:** Ablated FedGuard mode (quadrature vs linear), R4 (noise_tol_z) presence, and non-IID level (alpha in {0.1, 0.5, 100}) against AutoGM and FedAvg baselines on clean data and sign_flip.
 - **What we found:** (1) quadrature vs linear: similar at alpha>=0.5; at alpha=0.1 both near-collapse, differences not meaningful. (2) R4 helps at alpha=0.5 on sign_flip; at alpha=0.1 appears slightly over-aggressive with z=3.0 under extreme non-IID+DP noise. (3) All methods degrade severely at alpha=0.1, eps=3. Single seed limits statistical confidence.
@@ -474,6 +485,8 @@ It is updated after every phase.
 - **Decision:** Keep quadrature+R4 as default; note R4 z is a tunable hyperparameter for extreme non-IID.
 
 ### F44
+> **SUPERSEDED (17 Nov 2026, F46):** this entry used the 20-round / patience-5 / min-5 setting, which stopped many DP runs at round 6 during the warm-up. Its numbers are not valid results and are kept only as a record. The figure-code fixes themselves stay; every figure is regenerated from valid runs.
+
 **All figures regenerated and figure bugs fixed (audit Oct 31 2026). master.csv: 181 federated runs.**
 - p6_attacks.png: title now shows all alpha values (was hardcoded alpha=0.1 only).
 - b5_fedguard_vs_autogm.png: now includes FedAvg+DP bars for full 3-way comparison.
@@ -483,6 +496,8 @@ It is updated after every phase.
 - Phase 9 (mixed-eps): 18 runs in progress (FedGuard vs AutoGM vs FedAvg, eps mix 1/3/8). See F45 when complete.
 
 ### F45
+> **SUPERSEDED (17 Nov 2026, F46):** this entry used the 20-round / patience-5 / min-5 setting, which stopped many DP runs at round 6 during the warm-up. Its numbers are not valid results and are kept only as a record. Its key interpretation is reversed: see F47.
+
 **Phase 9 (P9 mixed-eps) completed: 18/18 runs. FedGuard vs AutoGM vs FedAvg under heterogeneous per-client privacy (eps mix 1/3/8), alpha=0.5, K=10, seeds 42-44.**
 - **What we did:** Core hypothesis test: does FedGuard handle mixed per-client privacy budgets (eps in {1, 3, 8} assigned per client) better than AutoGM and FedAvg? 3 aggregators x 2 attacks (none, sign_flip 30%) x 3 seeds = 18 runs.
 - **What we found (mean over 3 seeds):**
@@ -499,3 +514,31 @@ It is updated after every phase.
   Key results: (1) Under mixed-eps, **AutoGM's HRR soars to 0.41 on clean data** — it massively under-weights high-eps=8 clients (whose updates are small) while over-weighting eps=1 clients (whose updates are large and noisy). This confirms the R1 r_eff motivation. (2) FedGuard achieves the lowest HRR (0.11 clean, 0.07 attack) — R1 normalises by declared radius so eps=8 clients are not penalised. (3) On sign_flip, FedGuard attacker_share (0.243) stays below fair share (0.30); AutoGM lets attackers claim 0.393. (4) FedGuard macro-F1 on clean (0.140) is below FedAvg (0.153) — the tighter trust weighting under high variance mixed-eps costs ~1.3 ppt accuracy on clean data. Under sign_flip FedGuard (0.107) matches FedAvg (0.120) within noise. (5) Variance is high across seeds: two of six FedGuard runs collapse (0.080). Mixed-eps + DP is a hard regime.
 - **Evidence:** `results/figures/b5_fedguard_vs_autogm.png`, `results/master.csv` (name=p9_mixed_eps, 18 rows)
 - **Decision:** Hypothesis partially confirmed: FedGuard protects honest clients (HRR) under mixed privacy far better than AutoGM. Accuracy advantage is present but modest and seed-sensitive. Main thesis claim: FedGuard reduces HRR from 0.41 (AutoGM) to 0.11 under heterogeneous privacy.
+
+---
+
+## Audit of the 21-31 Oct runs (17 Nov 2026)
+
+### F46
+**The 20-round / patience-5 / min-5 setting used from 21 Oct stopped DP runs while the model was still in its "all Benign" warm-up; 40 rounds beat 20 rounds in 31 of 32 paired configurations. All 129 such runs are superseded.**
+- **What we did:** On 21 Oct `configs/k10_base.yaml` was changed from max 40 / patience 15 / min 10 rounds to max **20** / patience **5** / min **5** "for speed", in the middle of Phase 6 (30 of 69 runs had been made with 40). Phases 7-9 (B5, the E5 ablation, mixed-eps) were run with it. We compared the 32 K = 10 configurations that exist with both settings (same seed, partition, aggregator, attack, epsilon) and read the per-round logs.
+- **What we found:**
+  - Under DP the global model predicts **only Benign for the first ~8 rounds** (validation macro-F1 exactly **0.0797** = Benign F1 / 10, benign FPR 0), then starts to learn (e.g. FedAvg + DP, sign flip, seed 44: 0.0797 for rounds 1-8, 0.113 at round 10, final test **0.153**). With min 5 / patience 5 the same run stopped at **round 6** and reported **0.080**. 27 of the 128 twenty-round runs (**21%**) stopped at round 6 with best round 1 - this is the "29% of runs collapse" reported in F42 / the P7 note, an artefact of early stopping, not of the aggregators.
+  - Paired 40-round vs 20-round test macro-F1: 40 rounds higher in **31 of 32**, one tie, mean **+0.063** (e.g. AutoGM + DP sign flip seed 42: 0.152 vs 0.035; FedAvg no DP clean seed 42: 0.382 vs 0.288).
+  - The change also altered privacy: sigma is calibrated for the whole round budget, so 20-round runs use less noise per round than B2 and the 40-round runs - the two sets are different experiments and cannot be mixed in one table (the README did).
+  - Separate run names (`b5_fedguard`, `e5_ablation`, `p9_mixed_eps`) broke the shared `k10` de-duplication (F40): e.g. the mixed-eps AutoGM runs were trained twice.
+- **Evidence:** `results/runs/_superseded_20round_F46/` (129 runs, kept, not used), e.g. `k10_a0.5_k10_e5_eps3_c2_sign_flip0.3_s44_dfb34c/rounds.csv` vs the 40-round `k10_a0.5_k10_e5_eps3_c2_sign_flip0.3_s44_7b49a6/rounds.csv`; the 21-31 Oct `results/master.csv` in git history (commit dac2716).
+- **Decision / impact:** `k10_base.yaml` restored to **40 / 15 / 10** (the documented DP budget). F42-F45, the P6-P8 notes and the README results are withdrawn and re-done from valid runs only; every K = 10 experiment uses the shared name `k10`. Lesson (same as F18 and F28): never shorten early stopping without checking the learning curves - under DP the warm-up alone lasts longer than patience 5.
+
+### F47
+**Under mixed privacy (eps 1 / 3 / 8 across clients) AutoGM gives weight 0 to exactly the four MOST private clients (eps 1), in every round; FedGuard keeps them. F45 stated the opposite.**
+- **What we did:** Read `weights_log.csv` of the mixed-eps runs (alpha 0.5, epsilon [1, 3, 8] cycled over clients, so clients 0, 3, 6, 9 have eps 1) - AutoGM lam_scale 4 and FedGuard quadrature + R4, seed 42.
+- **What we found:** AutoGM mean weights: eps-1 clients (declared radius **22-25**) **0.000** each; eps-3 clients (radius ~9-10) 0.08-0.11; eps-8 clients (radius ~4.6-5.0) **0.23-0.24** each. Its HRR of exactly 0.40 = those 4 of 10 clients. FedGuard gave the eps-1 clients 0.11-0.12 each (fair share 0.10). F45 wrote that AutoGM "under-weights high-eps=8 clients (whose updates are small)": the reverse of the data. Under FedGuard (without s_floor) the clients that lost weight were instead low-noise eps-8 clients (weights 0.036-0.10), whose small, honest non-IID residual is visible above their small noise - see F48.
+- **Evidence:** `results/runs/k10_a0.5_k10_e5_autogm-lam4_eps1-3-8_c2_s42_3789f2/weights_log.csv` (40-round E4 run, valid); `results/runs/_superseded_20round_F46/p9_mixed_eps_a0.5_k10_e5_fedguard-k2-lam1-quadrature-r4z3_eps1-3-8_c2_s42_26b1e7/weights_log.csv`.
+- **Decision / impact:** This is the paper's hospital story measured on real IDS training: the most privacy-careful organisations are silenced by a robust aggregator that ignores declared noise. It is the central result to re-measure with valid runs (mixed-eps grid, 3 seeds, 40 rounds).
+
+### F48
+**FedGuard's allowance s collapses to 0 under DP, so any honest client with a visible residual is cut; an optional floor (s_floor = "noise") fixes it on synthetic data and is tuned on validation.**
+- **What we did:** Inspected FedGuard's per-round diagnostics in real runs, then added `s_floor: noise` to `aggregators.fedguard`: s >= one standard deviation of the noise in the residual estimate of the median client (quadrature r_eff (2/d)^(1/4), linear r_eff / sqrt(2d)) - the same quantities R4 uses, with z = 1. Without DP r_eff = 0, so the floor is 0 and nothing changes. Synthetic check (`tests/test_aggregators.py`, 20 seeds): 4 very private + 3 medium + 3 low-noise honest clients with a small common non-IID spread.
+- **What we found:** In the real mixed-eps runs `allowance_s` was **0.0 in every round**: more than half of the residuals are clipped to 0 (hidden by noise, plus R4), so median = MAD = 0, s = 0 and lam = lam_scale x s -> 0, turning the trust step into a cliff. This is the fragility predicted in F31. Synthetic HRR: linear + R4 **0.115 -> 0.035** with the floor, quadrature + R4 **0.125 -> 0.005**; AutoGM (lam_scale 4) **0.40**. A far attacker (-5 x the update) still gets weight 0, and permutation and scale invariance hold (tests).
+- **Decision / impact:** `s_floor` is a candidate like R4: `configs/sweeps/p7_fedguard_tune.yaml` chooses mode x R4 x s_floor x lam_scale on the **validation** split (seed 42, eps 3, alpha 0.5, no attack + 30% sign flip, mean val macro-F1 - the same protocol as AutoGM's lambda, F39), then the settings are frozen for every test-set experiment. Reported either way.

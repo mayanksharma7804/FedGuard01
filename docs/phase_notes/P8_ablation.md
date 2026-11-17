@@ -1,5 +1,9 @@
 # Phase 8 — Ablation Study (E5)
 
+> **SUPERSEDED (17 Nov 2026) - do not quote these numbers.** This note was written from the 20-round /
+> patience-5 runs of 21-31 Oct, which stopped many DP runs during the warm-up (Findings F46). It will be
+> rewritten from the valid 40-round runs. Corrections already known: this was a single-seed ablation (plan E6), not the plan's E5 main attack table.
+
 ## What we did
 30-run ablation over α ∈ {0.1, 0.5, 100} × 5 aggregators × 2 attacks (none, sign_flip), seed=42, DP ε=3, K=10.
 

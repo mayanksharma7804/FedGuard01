@@ -25,7 +25,8 @@ displacement that noise + non-IID heterogeneity cannot explain (noise-aware Auto
 
 ## Machine
 Everything (coding, dataset, training, experiments) runs on ONE Windows laptop: RTX 3050 4 GB,
-16 GB RAM, driver 566.07. Repo: https://github.com/mayanksharma7804/FedGuard01 (branch main).
+16 GB RAM, driver 610.91 (17 Nov: the .venv was repaired in place - its base Python is uv's
+cpython-3.11.17 under %APPDATA%\uv\python; uv was installed with pip --user). Repo: https://github.com/mayanksharma7804/FedGuard01 (branch main).
 Measured: non-DP FedAvg round (5 clients, E=5) ~26 s; DP round ~65 s with 2 jobs on the GPU -> ~45 min per
 40-round DP run. DP on CPU is ~5x slower - always use the GPU.
 
@@ -48,18 +49,17 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 (they spawn flower-superexec); custom strategy = subclass serverapp.strategy.FedAvg and override
 aggregate_train(server_round, replies).
 
-## Current phase
-Phase 6 RUNNING (21 Oct, resumed) - max_rounds reduced to 20, patience 5, min_rounds 5 for speed.
-Both shards active: logs/shard0.log and logs/shard1.log
-Phase 7 sweep ready: configs/sweeps/p7_fedguard_main.yaml (B5 FedGuard full attack grid)
-Phase 8 sweep ready: configs/sweeps/p8_e5_ablation.yaml (FedGuard vs AutoGM x alpha x attack)
-To resume after stop: delete results/runs/PAUSE_AFTER_RUN if exists, then:
-  python scripts/run_experiments.py --sweep configs/sweeps/p6_attacks_fedavg.yaml configs/sweeps/p6_autogm.yaml configs/sweeps/p7_fedguard_tune.yaml configs/sweeps/p6_autogm_nodp.yaml configs/sweeps/e4_conflict_autogm.yaml --shard 0/2   (and --shard 1/2)
-Phase 7 launch (after Phase 6 done):
-  python scripts/run_experiments.py --sweep configs/sweeps/p7_fedguard_main.yaml --shard 0/2   (and --shard 1/2)
-Phase 8 launch (after Phase 7 done):
-  python scripts/run_experiments.py --sweep configs/sweeps/p8_e5_ablation.yaml --shard 0/2   (and --shard 1/2)
-Phase 5 DONE (docs/phase_notes/P5_dp.md).
+## Current phase (17 Nov 2026)
+Phases 1-5 DONE. 21-31 Oct (20 rounds / patience 5 / min 5) runs are SUPERSEDED (F46) and live in
+results/runs/_superseded_20round_F46/ - never use them. k10_base is back to 40 / 15 / 10.
+Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM B3/B4, mixed-eps baselines, E4).
+- Start/resume: powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1   (2 shards, logs\queue_s0/1.log)
+- Pause:        scripts\windows\queue_pause.ps1  (after the round)  /  -AfterRun (after the run)
+- Status:       scripts\windows\queue_status.ps1
+To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
+Next: when the 16 p7_fedguard_tune runs finish -> compare_runs on VALIDATION (mean of none + sign_flip),
+freeze FedGuard settings (F49), then queue B5 grid, mixed-eps FedGuard, E4 FedGuard, E6 ablation, E7 stress.
+Then: plots, phase notes P6-P8 rewrite, Flower FedGuard demo + dashboard, report, PPT, viva pack.
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).
@@ -80,6 +80,7 @@ Phase 5 DONE (docs/phase_notes/P5_dp.md).
 - `set_flat` must COPY into parameters (never torch's vector_to_parameters: F24). Parameter vector always from
   model.parameters() (DPLSTM state_dict lists LSTM weights twice under aliases, F26).
 - All federated baselines: E=5, patience 15, min 10 rounds, max 120 (B1) / 40 (DP runs: max_rounds = privacy budget).
+  NEVER shorten this: under DP the model predicts only Benign for ~8 rounds (val macro-F1 0.0797) before it learns (F46).
 - B1 (test macro-F1): alpha 100 0.603, alpha 0.5 0.537 +/- 0.076, alpha 0.1 0.435 (F29). Seed spread at alpha 0.5
   is large -> always compare methods on the same partitions (paired).
 - Never run Flower SuperNodes next to training jobs (RAM, F25). Flower parity = 6.9e-17 (F26).
@@ -102,7 +103,7 @@ Phase 5 DONE (docs/phase_notes/P5_dp.md).
 
 ## Robust aggregation facts (Phase 6 prep)
 - aggregators.py: fedavg, autogm (lam = lam_scale x median distance, or fixed `lam`), fedguard (mode linear|
-  quadrature, k_mad, lam_scale, use_r_eff, noise_tol_z = R4), too_clean. Our AutoGM = Blades to 1e-11 (F37).
+  quadrature, k_mad, lam_scale, use_r_eff, noise_tol_z = R4, s_floor = 'noise' (F48)), too_clean. Our AutoGM = Blades to 1e-11 (F37).
 - Under DP noise, AutoGM with small lambda collapses onto ONE client (weights one-hot, model destroyed) - tune
   lam_scale up to 8 (F39).
 - attacks.py: label_flip, sign_flip (scale 1), gaussian (length = 10 x honest); attackers chosen once per run

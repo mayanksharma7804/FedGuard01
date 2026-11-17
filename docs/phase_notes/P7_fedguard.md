@@ -1,5 +1,9 @@
 # Phase 7 — FedGuard Full Attack Grid (B5)
 
+> **SUPERSEDED (17 Nov 2026) - do not quote these numbers.** This note was written from the 20-round /
+> patience-5 runs of 21-31 Oct, which stopped many DP runs during the warm-up (Findings F46). It will be
+> rewritten from the valid 40-round runs. Corrections already known: the '29% collapse' is the early-stopping artefact of F46; R1 is the centre-noise correction r_eff, not a normalisation; the variant was not chosen on validation (linear+R4 scored higher). FedGuard is now tuned on validation first (F48).
+
 ## What we did
 Ran FedGuard (quadrature mode, k_mad=2.0, lam_scale=1.0, noise_tol_z=3.0, outer=20) against all 4 attack types (none / label_flip / sign_flip / gaussian at fraction=0.3) across seeds 42-44, with DP ε=3, α=0.5, K=10.
 

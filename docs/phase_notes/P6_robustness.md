@@ -1,5 +1,9 @@
 # Phase 6 — Byzantine Robustness Baselines
 
+> **SUPERSEDED (17 Nov 2026) - do not quote these numbers.** This note was written from the 20-round /
+> patience-5 runs of 21-31 Oct, which stopped many DP runs during the warm-up (Findings F46). It will be
+> rewritten from the valid 40-round runs. Corrections already known: label flip does not 'point in the correct direction' - it is data poisoning whose DP-noisy update is as far from the centre as an honest one, so distance-based aggregators cannot see it; alpha 0.1 / 100 were only run in E4, not in the attack grid.
+
 ## What we did
 Implemented AutoGM (geometric median with lam_scale=4) as a Byzantine-robust aggregator and ran a full attack grid (none / label_flip / sign_flip / gaussian, fraction=0.3) across α ∈ {0.1, 0.5, 100} and seeds 42-44. Two privacy settings: no-DP (ε=∞) and DP ε=3. (ε=8 was planned but not run — ε=8 behaves similarly to ε=3 per B2 findings, F38.)
 
