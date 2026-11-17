@@ -1,0 +1,6 @@
+# E7 stress (seed 42): FedGuard at eps 8 and eps 1, no attack and 30% sign flip.
+base: configs/k10_base.yaml
+include: [configs/fedguard_frozen.yaml]
+grid:
+  dp.epsilon: [8.0, 1.0]
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

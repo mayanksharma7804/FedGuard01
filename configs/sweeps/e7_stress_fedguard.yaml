@@ -1,0 +1,7 @@
+# E7 stress (seed 42, fast plan F40): where does FedGuard break?
+#   attacker share 10 / 20 / 40% (sign flip, eps 3) and privacy eps 8 / 1 (no attack, sign flip).
+base: configs/k10_base.yaml
+include: [configs/fedguard_frozen.yaml]
+grid:
+  dp.epsilon: [3.0]
+  attack: [{type: sign_flip, fraction: 0.1}, {type: sign_flip, fraction: 0.2}, {type: sign_flip, fraction: 0.4}]

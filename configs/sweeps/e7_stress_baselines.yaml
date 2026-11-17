@@ -1,0 +1,7 @@
+# E7 stress baselines (seed 42): AutoGM and FedAvg at the same attacker shares and privacy levels as
+# e7_stress_fedguard.yaml / e7_stress_eps_fedguard.yaml.
+base: configs/k10_base.yaml
+grid:
+  fl.aggregator: [{name: autogm, lam_scale: 4.0, outer: 20}, {name: fedavg}]
+  dp.epsilon: [3.0]
+  attack: [{type: sign_flip, fraction: 0.1}, {type: sign_flip, fraction: 0.2}, {type: sign_flip, fraction: 0.4}]

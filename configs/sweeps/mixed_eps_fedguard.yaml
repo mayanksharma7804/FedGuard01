@@ -1,0 +1,9 @@
+# E5m mixed privacy (eps 1/3/8 cycled over the clients) - FedGuard with the frozen settings; pairs with
+# mixed_eps_baselines.yaml (same seeds, partitions, attackers).
+base: configs/k10_base.yaml
+include: [configs/fedguard_frozen.yaml]
+set:
+  dp: {epsilon: [1.0, 3.0, 8.0], clip: 2.0}
+grid:
+  seed: [42, 43, 44]
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

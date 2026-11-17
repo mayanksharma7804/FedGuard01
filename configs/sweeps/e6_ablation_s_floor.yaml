@@ -1,0 +1,9 @@
+# E6 ablation, one change at a time from the frozen FedGuard settings: s floor off / on (F48).
+# K = 10, alpha 0.5, epsilon 3, seeds 42-44, no attack / 30% sign flip. The frozen value is shared with E5
+# (trained once); null = option not used (normalised away, same run as leaving the key out).
+base: configs/k10_base.yaml
+include: [configs/fedguard_frozen.yaml]
+grid:
+  seed: [42, 43, 44]
+  fl.aggregator.s_floor: [null, noise]
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

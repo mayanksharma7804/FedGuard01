@@ -1,0 +1,6 @@
+# E7 stress baselines (seed 42): AutoGM and FedAvg at eps 8 and eps 1, no attack and 30% sign flip.
+base: configs/k10_base.yaml
+grid:
+  fl.aggregator: [{name: autogm, lam_scale: 4.0, outer: 20}, {name: fedavg}]
+  dp.epsilon: [8.0, 1.0]
+  attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

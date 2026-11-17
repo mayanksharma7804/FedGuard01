@@ -1,0 +1,9 @@
+# E5 main attack table - B5 = FedGuard + DP with the settings frozen on validation (configs/fedguard_frozen.yaml, F50).
+# Same grid as p6_attacks_fedavg / p6_autogm (paired: same partitions, seeds and attackers).
+# K = 10, alpha 0.5, epsilon 3, 30% attackers, 40-round budget.
+base: configs/k10_base.yaml
+include: [configs/fedguard_frozen.yaml]
+grid:
+  seed: [42, 43, 44]
+  attack: [{type: none, fraction: 0.0}, {type: label_flip, fraction: 0.3}, {type: sign_flip, fraction: 0.3},
+           {type: gaussian, fraction: 0.3}]

@@ -28,7 +28,7 @@ import pandas as pd
 import torch
 import yaml
 
-from fedguard.config import config_hash, get_dotted, load_config, save_config, set_dotted
+from fedguard.config import config_hash, deep_merge, get_dotted, load_config, save_config, set_dotted
 from fedguard.data import load_processed
 from fedguard.fl_sim import FLSimulation, PauseRequested
 from fedguard.partition import load_partition, partition_path
@@ -83,16 +83,32 @@ def run_name(cfg) -> str:
     return "_".join(parts) + "_" + config_hash(cfg)[:6]
 
 
+def normalise(cfg):
+    """Aggregator options set to null mean 'not used': drop them, so a config written with `noise_tol_z: null`
+    is the same run (same hash) as one that leaves the key out."""
+    agg = cfg["fl"]["aggregator"]
+    cfg["fl"]["aggregator"] = {k: v for k, v in agg.items() if v is not None}
+    return cfg
+
+
 def expand_sweep(path):
+    """base config + include files (deep-merged in order, e.g. the frozen FedGuard settings) + set + grid."""
     spec = yaml.safe_load(open(path))
-    base = load_config(REPO_ROOT / spec["base"], spec.get("set"))
+    extra = {}
+    for inc in spec.get("include", []):
+        inc_path = REPO_ROOT / inc
+        if not inc_path.exists():
+            raise FileNotFoundError(f"{path} includes {inc}, which does not exist yet (FedGuard settings are frozen "
+                                    f"on validation first - Findings F50)")
+        extra = deep_merge(extra, yaml.safe_load(open(inc_path)) or {})
+    base = load_config(REPO_ROOT / spec["base"], deep_merge(extra, spec.get("set") or {}))
     keys = list(spec.get("grid", {}))
     configs = []
     for combo in itertools.product(*[spec["grid"][k] for k in keys]):
         cfg = load_config(overrides=base)
         for k, v in zip(keys, combo):
             set_dotted(cfg, k, v)
-        configs.append(cfg)
+        configs.append(normalise(cfg))
     return configs
 
 
