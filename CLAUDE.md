@@ -59,7 +59,10 @@ Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM 
 To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
 Next: when the 16 p7_fedguard_tune runs finish -> compare_runs on VALIDATION (mean of none + sign_flip),
 freeze FedGuard settings (F50), then queue B5 grid, mixed-eps FedGuard, E4 FedGuard, E6 ablation, E7 stress.
-Then: plots, phase notes P6-P8 rewrite, Flower FedGuard demo + dashboard, report, PPT, viva pack.
+Then: plots, phase notes P6-P8 rewrite, report, PPT, viva pack.
+Demo (docs/demo.md, scripts/windows/demo_flower.ps1, scripts/demo_dashboard.py) WORKS end to end (3-round test,
+~25 s/round). configs/demo_fedguard.yaml is PROVISIONAL: with lam_scale 1 the eps-1 hospital (client 1) was cut in
+rounds 1 and 3 of the E=1 demo - set the frozen F50 settings, re-test 10 rounds, report what it shows.
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).

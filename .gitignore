@@ -14,3 +14,6 @@ __pycache__/
 .pytest_cache/
 .env
 *.egg-info/
+
+# live-demo rehearsal outputs (re-created by scripts/windows/demo_flower.ps1)
+results/demo_*/
