@@ -1,11 +1,18 @@
-# Phase 7 (VALIDATION only): FedGuard mode x R4, with and without 30% sign-flip attackers.
-# K = 10, alpha 0.5, epsilon 3, seed 42; k_mad = 2 and lam_scale = 1 as in the guide (E6 varies them).
+# Phase 7 (VALIDATION only): choose FedGuard's settings the same way AutoGM's lambda was chosen (F39):
+# K = 10, alpha 0.5, epsilon 3, seed 42, 40-round budget, mean validation macro-F1 over "no attack" and
+# "30% sign flip". One change at a time from the guide's default (quadrature, k_mad 2, lam_scale 1):
+#   R2 mode (quadrature / linear), R4 (noise_tol_z 3), s_floor "noise" (F46), lam_scale 1 -> 4.
+# Shared name k10: the chosen configuration's seed-42 runs are re-used by the B5 grid (no retraining).
+#   python scripts/compare_runs.py --glob "k10_a0.5_k10_e5_fedguard*_eps3_c2*_s42_*"
 base: configs/k10_base.yaml
-set:
-  name: p7_fedguard_tune
 grid:
-  fl.aggregator: [{name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20},
-                  {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20},
-                  {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0},
-                  {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0}]
+  fl.aggregator:
+    - {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20}
+    - {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0}
+    - {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20}
+    - {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0}
+    - {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0, s_floor: noise}
+    - {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0, s_floor: noise}
+    - {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 4.0, outer: 20, noise_tol_z: 3.0, s_floor: noise}
+    - {name: fedguard, mode: linear, k_mad: 2.0, lam_scale: 4.0, outer: 20, noise_tol_z: 3.0, s_floor: noise}
   attack: [{type: none, fraction: 0.0}, {type: sign_flip, fraction: 0.3}]

@@ -1,0 +1,7 @@
+# Experiment queue used by scripts\windows\queue_start.ps1 (one sweep file per line, run in this order;
+# duplicates across files are trained once; finished runs are skipped).
+configs/sweeps/p7_fedguard_tune.yaml
+configs/sweeps/p6_autogm.yaml
+configs/sweeps/p6_autogm_nodp.yaml
+configs/sweeps/mixed_eps_baselines.yaml
+configs/sweeps/e4_conflict_autogm.yaml

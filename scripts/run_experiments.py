@@ -52,7 +52,7 @@ def run_name(cfg) -> str:
     parts = [cfg["name"], f"a{f['alpha']:g}", f"k{f['clients']}", f"e{f['local_epochs']}"]
     agg = f["aggregator"]
     if agg["name"] != "fedavg":                             # e.g. autogm-lam1, fedguard-modquadrature-noi3
-        short = {"lam_scale": "lam", "k_mad": "k", "mode": "", "noise_tol_z": "r4z", "use_r_eff": "reff"}
+        short = {"lam_scale": "lam", "k_mad": "k", "mode": "", "noise_tol_z": "r4z", "use_r_eff": "reff", "s_floor": "sf"}
         tags = [f"{short.get(k, k[:3])}{v:g}" if isinstance(v, (int, float)) and not isinstance(v, bool)
                 else f"{short.get(k, k[:3])}{v}" for k, v in sorted(agg.items()) if k not in ("name", "outer")]
         parts.append("-".join([agg["name"]] + tags))

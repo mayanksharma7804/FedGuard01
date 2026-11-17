@@ -1,0 +1,27 @@
+# Start (or resume) the experiment queue: 2 shards in the background, logs in logs\queue_s0.log / queue_s1.log.
+#   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1          # 2 jobs (default)
+#   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1 -Jobs 1  # 1 job (cooler laptop)
+# Safe to run again at any time: finished runs are skipped and interrupted runs resume from their checkpoint.
+param([int]$Jobs = 2)
+$ErrorActionPreference = "Stop"
+$Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+Set-Location $Repo
+$Py = Join-Path $Repo ".venv\Scripts\python.exe"
+$Runs = Join-Path $Repo "results\runs"
+New-Item -ItemType Directory -Force (Join-Path $Repo "logs") | Out-Null
+
+$running = Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -match 'run_experiments\.py' }
+if ($running) { Write-Host "The queue is already running (PID $($running.ProcessId -join ', ')). Nothing started."; exit 0 }
+
+foreach ($f in "PAUSE", "PAUSE_AFTER_RUN") { Remove-Item (Join-Path $Runs $f) -ErrorAction SilentlyContinue }
+$Sweeps = Get-Content (Join-Path $Repo "configs\sweeps\QUEUE.txt") | Where-Object { $_ -and -not $_.StartsWith("#") }
+powercfg /change standby-timeout-ac 0 | Out-Null          # no sleep on AC power while training
+
+for ($i = 0; $i -lt $Jobs; $i++) {
+    $log = "logs\queue_s$i.log"
+    $argList = @("-u", "scripts\run_experiments.py", "--sweep") + $Sweeps + @("--shard", "$i/$Jobs")
+    Start-Process -FilePath $Py -ArgumentList $argList -WorkingDirectory $Repo -WindowStyle Hidden `
+        -RedirectStandardOutput $log -RedirectStandardError "logs\queue_s${i}_err.log"
+    Write-Host "Started shard $i/$Jobs -> $log"
+}
+Write-Host "Pause: scripts\windows\queue_pause.ps1    Status: scripts\windows\queue_status.ps1"

@@ -135,3 +135,67 @@ def test_registry_and_too_clean():
         fedguard(np.ones((3, 4)), None, np.zeros(3), {"mode": "cubic"})
     r = np.array([1.0, 1.0])
     assert list(too_clean(np.array([0.2, 1.0]), r, D)) == [True, False]
+
+
+# ---------------------------------------------------------------- s_floor = "noise" (Findings F46)
+SF_VARIANTS = [{"mode": m, "noise_tol_z": 3.0, "s_floor": "noise"} for m in ("linear", "quadrature")]
+SF_IDS = [f"{v['mode']}-R4on-sfloor" for v in SF_VARIANTS]
+
+
+def _mixed_privacy_round(rng, spread=0.15):
+    """Mixed privacy as in the real runs: 4 very private clients (large radius, residual hidden by noise),
+    3 medium, 3 low-noise clients whose small honest non-IID spread IS visible."""
+    mu = direction(rng)
+    r = np.array([2.5] * 4 + [1.0] * 3 + [0.4] * 3)
+    X = np.stack([noisy(rng, noisy(rng, mu, spread), ri) for ri in r])
+    return mu, r, X
+
+
+@pytest.mark.parametrize("mode", ["linear", "quadrature"])
+def test_s_floor_prevents_collapse_onto_hidden_residuals(mode):
+    """Without the floor, residuals hidden by noise are 0 for most clients -> median = MAD = s = 0, and the
+    low-noise honest clients (whose spread is visible) are cut. With the floor they keep a fair weight."""
+    cut_off, cut_on = 0, 0
+    for seed in range(20):
+        _, r, X = _mixed_privacy_round(np.random.default_rng(200 + seed))
+        p = {"mode": mode, "noise_tol_z": 3.0}
+        _, a_off, info = fedguard(X, None, r, p)
+        _, a_on, _ = fedguard(X, None, r, {**p, "s_floor": "noise"})
+        cut_off += int(np.sum(a_off < 0.5 / 10))
+        cut_on += int(np.sum(a_on < 0.5 / 10))
+    assert cut_on < cut_off
+    assert cut_on <= 0.05 * 20 * 10
+
+
+@pytest.mark.parametrize("p", SF_VARIANTS, ids=SF_IDS)
+def test_s_floor_still_rejects_far_attacker(p):
+    rng = np.random.default_rng(7)
+    mu, r, X = _mixed_privacy_round(rng)
+    Xa = np.vstack([X, -5 * mu])
+    _, a, _ = fedguard(Xa, None, np.append(r, 0.4), p)
+    assert a[-1] < 1e-6
+
+
+@pytest.mark.parametrize("p", SF_VARIANTS, ids=SF_IDS)
+def test_s_floor_invariances(p):
+    rng = np.random.default_rng(8)
+    mu = direction(rng)
+    r = rng.uniform(0.1, 1.0, size=8)
+    X = np.stack([noisy(rng, mu, ri) for ri in r[:7]] + [-4 * mu])
+    z, a, _ = fedguard(X, None, r, p)
+    perm = rng.permutation(8)
+    z2, a2, _ = fedguard(X[perm], None, r[perm], p)
+    assert np.allclose(z, z2, atol=1e-8) and np.allclose(a[perm], a2, atol=1e-8)
+    assert np.allclose(a, fedguard(10 * X, None, 10 * r, p)[1], atol=1e-8)
+
+
+def test_s_floor_is_inactive_without_dp():
+    rng = np.random.default_rng(9)
+    mu = direction(rng)
+    X = np.stack([noisy(rng, mu, 0.2) for _ in range(7)] + [-3 * mu])
+    for mode in ("linear", "quadrature"):
+        a = fedguard(X, None, np.zeros(8), {"mode": mode})[1]
+        a_sf = fedguard(X, None, np.zeros(8), {"mode": mode, "s_floor": "noise"})[1]
+        assert np.allclose(a, a_sf)
+    with pytest.raises(ValueError):
+        fedguard(X, None, np.zeros(8), {"s_floor": "huge"})

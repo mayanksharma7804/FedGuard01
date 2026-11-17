@@ -88,14 +88,22 @@ def fedguard(X, n=None, r=None, params=None):
       R4  noise_tol_z (optional): also forgive z standard deviations of the noise LENGTH itself:
           ||noise|| ~ r_eff +/- r_eff/sqrt(2d)  ->  linear: - z*r_eff/sqrt(2d);
           ||noise||^2 ~ r_eff^2 +/- r_eff^2*sqrt(2/d)  ->  quadrature: - z*r_eff^2*sqrt(2/d) inside the root.
+      s_floor 'noise' (optional, Findings F31/F46): s is never smaller than ONE standard deviation of the noise
+          in the residual estimate of the median client - quadrature r_eff*(2/d)^(1/4), linear r_eff/sqrt(2d).
+          Without it, when more than half of the residuals are 0 (common under DP, where they are hidden by
+          noise), median = MAD = 0, so s = 0 and lam -> 0: any client with a small, honest non-IID residual
+          gets weight 0 (a cliff). The floor is 0 without DP, so non-DP behaviour is unchanged.
     Excess e = max(0, residual - s); trust a = simplex projection of -e / (lam_scale * s)."""
     p = params or {}
     lam_scale, k_mad = float(p.get("lam_scale", 1.0)), float(p.get("k_mad", 2.0))
     outer, mode = int(p.get("outer", 20)), p.get("mode", "quadrature")
     use_r_eff, z_tol = bool(p.get("use_r_eff", True)), p.get("noise_tol_z")
     z_tol = 0.0 if z_tol is None else float(z_tol)
+    s_floor = p.get("s_floor")
     if mode not in ("linear", "quadrature"):
         raise ValueError(f"unknown fedguard mode '{mode}'")
+    if s_floor not in (None, "noise"):
+        raise ValueError(f"unknown fedguard s_floor '{s_floor}' (None or 'noise')")
     X = np.asarray(X, dtype=np.float64)
     K, dim = X.shape
     r = np.zeros(K) if r is None else np.asarray(r, dtype=np.float64)
@@ -118,6 +126,9 @@ def fedguard(X, n=None, r=None, params=None):
         med = np.median(res)
         mad = 1.4826 * np.median(np.abs(res - med))
         s = med + k_mad * mad
+        if s_floor == "noise":
+            unit = (2.0 / dim) ** 0.25 if mode == "quadrature" else 1.0 / np.sqrt(2.0 * dim)
+            s = max(s, float(np.median(r_eff)) * unit)
         e = np.maximum(0.0, res - s)
         lam = lam_scale * max(s, 1e-12)
         a = project_simplex(-e / lam)
