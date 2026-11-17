@@ -12,9 +12,9 @@ import torch
 from flwr.app import ArrayRecord, MetricRecord
 from flwr.serverapp.strategy import FedAvg
 
-from fedguard import dp
+from fedguard import attacks, dp
 from fedguard.aggregators import get_aggregator
-from fedguard.fl_sim import flat, round_seed, set_flat
+from fedguard.fl_sim import flat, poison_delta, round_seed, set_flat
 from fedguard.train import make_loader, make_optimizer, train_epoch
 
 
@@ -30,12 +30,26 @@ def arrays_from_vec(template_model, vec: torch.Tensor) -> ArrayRecord:
     return ArrayRecord(m.state_dict())
 
 
+def is_attacker(cfg, cid) -> bool:
+    """Same attacker choice as FLSimulation (fixed per run from the seed)."""
+    a = cfg.get("attack") or {"type": "none", "fraction": 0.0}
+    if a["type"] == "none":
+        return False
+    return bool(attacks.choose_attackers(cfg["fl"]["clients"], a["fraction"], cfg["seed"])[cid])
+
+
 def client_round(model, X, y, cfg, cid, rnd, loss_fn, device):
-    """Exactly what FLSimulation.local_train does for one client in one round (DP-SGD if dp.epsilon is set).
+    """Exactly what FLSimulation.local_train does for one client in one round (DP-SGD if dp.epsilon is set,
+    and the configured attack if this client is an attacker; its declared metadata stays honest-looking).
     `model` is trained in place; returns (mean loss, declared metadata)."""
     rs = round_seed(cfg["seed"], rnd, cid)
     torch.manual_seed(rs)
-    loader = make_loader(X, y, cfg["train"]["batch_size"], shuffle=True, seed=rs)
+    attack = (cfg.get("attack") or {}).get("type", "none")
+    bad = is_attacker(cfg, cid)
+    if bad and attack == "label_flip":
+        y = attacks.label_flip(y)
+    g0 = flat(model)
+    loader = make_loader(X, y, cfg["train"]["batch_size"], shuffle=True, seed=rs, device=device)
     opt = make_optimizer(model, cfg["train"]["lr"])
     plan = dp.client_privacy_plan(len(y), cfg, cid)
     net = model
@@ -46,6 +60,8 @@ def client_round(model, X, y, cfg, cid, rnd, loss_fn, device):
     else:
         steps, batch = len(loader) * cfg["fl"]["local_epochs"], cfg["train"]["batch_size"]
     losses = [train_epoch(net, loader, opt, loss_fn, device) for _ in range(cfg["fl"]["local_epochs"])]
+    if bad and attack in ("sign_flip", "gaussian"):
+        set_flat(model, g0 + poison_delta(flat(model) - g0, cfg["attack"], rs))
     meta = {"n": len(y), "lr": cfg["train"]["lr"], "sigma": plan["sigma"], "C": plan["C"],
             "B": batch, "T": steps}
     return float(np.mean(losses)), meta

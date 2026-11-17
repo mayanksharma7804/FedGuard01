@@ -69,6 +69,20 @@ def round_seed(seed: int, rnd: int, cid: int) -> int:
     return zlib.crc32(f"{seed}-{rnd}-{cid}".encode()) & 0x7FFFFFFF
 
 
+def poison_delta(delta: torch.Tensor, attack_cfg: dict, rs: int) -> torch.Tensor:
+    """Model poisoning of one update (sign_flip / gaussian). Shared by our engine and the Flower client, so both
+    send exactly the same poisoned update for the same (seed, round, client)."""
+    scale = attacks.attack_scale(attack_cfg)
+    if attack_cfg["type"] == "sign_flip":
+        return attacks.sign_flip(delta, scale)
+    if attack_cfg["type"] != "gaussian":
+        raise ValueError(f"'{attack_cfg['type']}' is not a model-poisoning attack")
+    gen = torch.Generator(device=delta.device)
+    gen.manual_seed(rs ^ 0xA77AC)
+    std = scale * float(delta.norm()) / np.sqrt(delta.numel())     # length = scale x honest length
+    return std * torch.randn(delta.shape, generator=gen, device=delta.device, dtype=delta.dtype)
+
+
 class FLSimulation:
     def __init__(self, cfg, data, parts, device, log=print):
         self.cfg, self.data, self.device, self.log = cfg, data, device, log
@@ -100,7 +114,7 @@ class FLSimulation:
         y = self.data.y_tr[client.idx]
         if client.is_attacker and self.attack == "label_flip":
             y = attacks.label_flip(y)                         # data poisoning: attacks relabelled benign
-        loader = make_loader(self.data.X_tr[client.idx], y, t["batch_size"], shuffle=True, seed=rs)
+        loader = make_loader(self.data.X_tr[client.idx], y, t["batch_size"], shuffle=True, seed=rs, device=self.device)
         opt = make_optimizer(model, t["lr"])
         if self.dp:
             p = client.meta
@@ -118,13 +132,7 @@ class FLSimulation:
         return {"delta": delta, "loss": float(np.mean(losses)), "meta": meta}
 
     def poison(self, delta: torch.Tensor, rs: int) -> torch.Tensor:
-        scale = attacks.attack_scale(self.cfg["attack"])
-        if self.attack == "sign_flip":
-            return attacks.sign_flip(delta, scale)
-        gen = torch.Generator(device=delta.device)
-        gen.manual_seed(rs ^ 0xA77AC)
-        std = scale * float(delta.norm()) / np.sqrt(delta.numel())     # length = scale x honest length
-        return std * torch.randn(delta.shape, generator=gen, device=delta.device, dtype=delta.dtype)
+        return poison_delta(delta, self.cfg["attack"], rs)
 
     # ------------------------------------------------------------------ server side
     def noise_radius(self, meta) -> float:
@@ -144,10 +152,12 @@ class FLSimulation:
                 "sigma_per_client": [c.meta["sigma"] for c in self.clients], "clip": self.clients[0].meta["C"],
                 "rounds_budget": self.cfg["fl"]["max_rounds"]}
 
-    def run(self, checkpoint=None, should_pause=None):
+    def run(self, checkpoint=None, should_pause=None, before_client=None):
         """checkpoint: path of a per-round checkpoint; if it exists the run resumes after its last round.
         Every round is deterministic given the global model (seeds per round/client), so a resumed run gives
-        the same result as an uninterrupted one. should_pause(): checked after each saved round."""
+        the same result as an uninterrupted one. should_pause(): checked after each saved round.
+        before_client(): called before every client's local training (the thermal guard waits there while
+        the laptop is too hot; waiting does not change any result)."""
         f, t = self.cfg["fl"], self.cfg["train"]
         g = flat(self.global_model)
         best = {"f1": -1.0, "round": 0, "vec": g.clone()}
@@ -166,14 +176,20 @@ class FLSimulation:
             if stopped:
                 break
             t0 = time.perf_counter()
-            outs = [self.local_train(c, g, rnd) for c in self.clients]
+            outs, waited = [], 0.0
+            for c in self.clients:
+                if before_client is not None:
+                    w0 = time.perf_counter()
+                    before_client()
+                    waited += time.perf_counter() - w0
+                outs.append(self.local_train(c, g, rnd))
             X = torch.stack([o["delta"] for o in outs]).cpu().numpy()
             n = np.array([o["meta"]["n"] for o in outs], dtype=float)
             r = np.array([self.noise_radius(o["meta"]) for o in outs])
             z, w, info = self.aggregate(X, n, r, f["aggregator"])
             g = g + torch.as_tensor(z, dtype=g.dtype, device=g.device)
             set_flat(self.global_model, g)
-            train_s = time.perf_counter() - t0
+            train_s = time.perf_counter() - t0 - waited          # compute time only (thermal waits excluded)
 
             val = evaluate(self.global_model, self.data.X_va, self.data.y_va, self.data.classes,
                            self.device, t["eval_batch"])
@@ -200,7 +216,8 @@ class FLSimulation:
                 weights_log.append(row)
             self.log(f"  round {rnd:3d}/{f['max_rounds']}  client loss {rounds[-1]['client_loss_mean']:.4f}  "
                      f"val macro-F1 {val['macro_f1']:.4f}  best {best['f1']:.4f} (round {best['round']})  "
-                     f"patience {bad}/{f['patience']}{'  *new best' if improved else ''}  ({train_s:.1f}s)"
+                     f"patience {bad}/{f['patience']}{'  *new best' if improved else ''}  ({train_s:.1f}s"
+                     + (f", cooled {waited:.0f}s)" if waited >= 1 else ")")
                      + (f"  weights max {w.max():.2f} HRR {rounds[-1]['hrr']:.2f}" if f["aggregator"]["name"] != "fedavg" else "")
                      + (f" attacker share {rounds[-1]['attacker_share']:.2f}" if self.attack != "none" else ""))
             if bad >= f["patience"] and rnd >= f["min_rounds"]:

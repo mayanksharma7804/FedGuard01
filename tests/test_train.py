@@ -63,3 +63,34 @@ def test_class_weights_favour_rare_classes(mode):
     w = class_weights(y, 3, mode)
     assert w[2] > w[1] > w[0] and float(w.mean()) == pytest.approx(1.0)
     assert class_weights(y, 3, "none") is None
+
+
+def test_batched_loader_gives_the_same_batches_as_row_by_row():
+    """make_loader's one-shot batch gathering (BatchTensorDataset) must yield exactly the batches of the plain
+    row-by-row TensorDataset loader, with shuffling and with Opacus' Poisson sampling."""
+    import warnings
+    from torch.utils.data import DataLoader, TensorDataset
+    from opacus import PrivacyEngine
+    from fedguard.train import make_loader
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(700, 6)).astype(np.float32)
+    y = rng.integers(0, 3, size=700)
+
+    def old(seed):
+        ds = TensorDataset(torch.as_tensor(X), torch.as_tensor(y, dtype=torch.long))
+        return DataLoader(ds, batch_size=64, shuffle=True, generator=torch.Generator().manual_seed(seed))
+
+    def private(loader):
+        m = torch.nn.Linear(6, 3)
+        opt = torch.optim.SGD(m.parameters(), lr=0.1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return PrivacyEngine().make_private(module=m, optimizer=opt, data_loader=loader, noise_multiplier=1.0,
+                                                max_grad_norm=1.0, poisson_sampling=True)[2]
+
+    for wrap in (lambda l: l, private):
+        a = list(wrap(old(5)))
+        b = list(wrap(make_loader(X, y, 64, shuffle=True, seed=5)))
+        assert len(a) == len(b)
+        for (xa, ya), (xb, yb) in zip(a, b):
+            assert torch.equal(xa, xb) and torch.equal(ya, yb)

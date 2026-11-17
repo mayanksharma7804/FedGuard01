@@ -18,6 +18,7 @@ again (--force re-runs). Two shards (--shard 0/2 and --shard 1/2) in two termina
 import argparse
 import itertools
 import json
+import os
 import platform
 import subprocess
 import time
@@ -39,8 +40,23 @@ PAUSE = RUNS / "PAUSE"          # create this file to pause every running sweep 
 PAUSE_AFTER_RUN = RUNS / "PAUSE_AFTER_RUN"   # ... or this one: finish the current run, then stop (clean boundary)
 
 
+THROTTLE = RUNS / "THROTTLE"    # written by scripts/windows/thermal_guard.ps1 while the laptop is too hot
+
+
 def pause_requested() -> bool:
     return PAUSE.exists()
+
+
+def wait_while_hot(log=print):
+    """Thermal guard: while results/runs/THROTTLE exists, wait before the next client (GPU and CPU idle).
+    Waiting never changes a result - every client/round is seeded independently of wall time."""
+    if not THROTTLE.exists():
+        return
+    t0 = time.time()
+    log(f"  [thermal] laptop too hot - waiting to cool down ({time.strftime('%H:%M:%S')})")
+    while THROTTLE.exists() and not PAUSE.exists():
+        time.sleep(5)
+    log(f"  [thermal] resumed after {time.time() - t0:.0f}s")
 
 
 def parse_value(text):
@@ -120,7 +136,8 @@ def run_one(cfg, force=False):
             log(f"    client {c.cid}: n={c.n:6d}  eps={c.meta['target_epsilon']:g}  T={c.meta['T']:4d}/round  sigma={c.meta['sigma']:.3f}  "
                 f"delta={c.meta['delta']:.2e}  declared radius={sim.noise_radius(c.meta):.4f}")
     try:
-        model, rounds, weights_log, info = sim.run(checkpoint=ckpt, should_pause=pause_requested)
+        model, rounds, weights_log, info = sim.run(checkpoint=ckpt, should_pause=pause_requested,
+                                                   before_client=lambda: wait_while_hot(log))
     except PauseRequested:
         live.close()
         raise
@@ -157,7 +174,10 @@ def main():
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--resume", action="store_true", help="skip finished runs (always on; kept for the plan's commands)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--threads", type=int, default=int(os.environ.get("FEDGUARD_THREADS", "2")),
+                    help="CPU threads for torch per process (training is GPU-bound; fewer threads = cooler CPU)")
     args = ap.parse_args()
+    torch.set_num_threads(max(1, args.threads))
 
     if args.sweep:
         configs, seen = [], set()

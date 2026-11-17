@@ -1,8 +1,10 @@
-# Start (or resume) the experiment queue: 2 shards in the background, logs in logs\queue_s0.log / queue_s1.log.
-#   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1          # 2 jobs (default)
-#   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1 -Jobs 1  # 1 job (cooler laptop)
+# Start (or resume) the experiment queue in the background, logs in logs\queue_s<i>.log.
+#   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1           # 1 job (default, cool)
+#   powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1 -Jobs 2   # 2 jobs (faster, hotter)
+# Each job uses at most -Threads CPU threads, and the thermal guard (thermal_guard.ps1) makes the jobs wait
+# whenever the CPU or GPU reaches -High C (default 78) until they are back at -Low C (default 70).
 # Safe to run again at any time: finished runs are skipped and interrupted runs resume from their checkpoint.
-param([int]$Jobs = 2)
+param([int]$Jobs = 1, [int]$Threads = 2, [int]$High = 78, [int]$Low = 70)
 $ErrorActionPreference = "Stop"
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $Repo
@@ -11,17 +13,25 @@ $Runs = Join-Path $Repo "results\runs"
 New-Item -ItemType Directory -Force (Join-Path $Repo "logs") | Out-Null
 
 $running = Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -match 'run_experiments\.py' }
-if ($running) { Write-Host "The queue is already running (PID $($running.ProcessId -join ', ')). Nothing started."; exit 0 }
-
-foreach ($f in "PAUSE", "PAUSE_AFTER_RUN") { Remove-Item (Join-Path $Runs $f) -ErrorAction SilentlyContinue }
-$Sweeps = Get-Content (Join-Path $Repo "configs\sweeps\QUEUE.txt") | Where-Object { $_ -and -not $_.StartsWith("#") }
-powercfg /change standby-timeout-ac 0 | Out-Null          # no sleep on AC power while training
-
-for ($i = 0; $i -lt $Jobs; $i++) {
-    $log = "logs\queue_s$i.log"
-    $argList = @("-u", "scripts\run_experiments.py", "--sweep") + $Sweeps + @("--shard", "$i/$Jobs")
-    Start-Process -FilePath $Py -ArgumentList $argList -WorkingDirectory $Repo -WindowStyle Hidden `
-        -RedirectStandardOutput $log -RedirectStandardError "logs\queue_s${i}_err.log"
-    Write-Host "Started shard $i/$Jobs -> $log"
+if ($running) {
+    Write-Host "The queue is already running (PID $($running.ProcessId -join ', ')). No new jobs started."
+} else {
+    foreach ($f in "PAUSE", "PAUSE_AFTER_RUN") { Remove-Item (Join-Path $Runs $f) -ErrorAction SilentlyContinue }
+    $Sweeps = Get-Content (Join-Path $Repo "configs\sweeps\QUEUE.txt") | Where-Object { $_ -and -not $_.StartsWith("#") }
+    powercfg /change standby-timeout-ac 0 | Out-Null          # no sleep on AC power while training
+    $env:FEDGUARD_THREADS = "$Threads"; $env:OMP_NUM_THREADS = "$Threads"; $env:MKL_NUM_THREADS = "$Threads"
+    for ($i = 0; $i -lt $Jobs; $i++) {
+        $log = "logs\queue_s$i.log"
+        $argList = @("-u", "scripts\run_experiments.py", "--sweep") + $Sweeps + @("--shard", "$i/$Jobs")
+        Start-Process -FilePath $Py -ArgumentList $argList -WorkingDirectory $Repo -WindowStyle Hidden `
+            -RedirectStandardOutput $log -RedirectStandardError "logs\queue_s${i}_err.log"
+        Write-Host "Started shard $i/$Jobs -> $log"
+    }
+}
+$guard = Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | Where-Object { $_.CommandLine -match 'thermal_guard\.ps1' }
+if (-not $guard) {
+    Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass",
+        "-File", ('"' + (Join-Path $PSScriptRoot "thermal_guard.ps1") + '"'), "-High", "$High", "-Low", "$Low")
+    Write-Host "Thermal guard started (pause jobs at $High C, resume at $Low C) -> logs\thermal.log"
 }
 Write-Host "Pause: scripts\windows\queue_pause.ps1    Status: scripts\windows\queue_status.ps1"

@@ -53,12 +53,12 @@ aggregate_train(server_round, replies).
 Phases 1-5 DONE. 21-31 Oct (20 rounds / patience 5 / min 5) runs are SUPERSEDED (F46) and live in
 results/runs/_superseded_20round_F46/ - never use them. k10_base is back to 40 / 15 / 10.
 Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM B3/B4, mixed-eps baselines, E4).
-- Start/resume: powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1   (2 shards, logs\queue_s0/1.log)
+- Start/resume: powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1   (1 job + thermal guard, logs\queue_s0.log)
 - Pause:        scripts\windows\queue_pause.ps1  (after the round)  /  -AfterRun (after the run)
 - Status:       scripts\windows\queue_status.ps1
 To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
 Next: when the 16 p7_fedguard_tune runs finish -> compare_runs on VALIDATION (mean of none + sign_flip),
-freeze FedGuard settings (F49), then queue B5 grid, mixed-eps FedGuard, E4 FedGuard, E6 ablation, E7 stress.
+freeze FedGuard settings (F50), then queue B5 grid, mixed-eps FedGuard, E4 FedGuard, E6 ablation, E7 stress.
 Then: plots, phase notes P6-P8 rewrite, Flower FedGuard demo + dashboard, report, PPT, viva pack.
 
 ## Training facts (Phase 3)
@@ -66,7 +66,9 @@ Then: plots, phase notes P6-P8 rewrite, Flower FedGuard demo + dashboard, report
 - B0 = ceiling: test macro-F1 0.597 +/- 0.004 (seeds 42/43/44), binary F1 0.912, benign FPR 0.068.
 - `python scripts/run_centralised.py` (skips finished runs; live log in results/runs/<run>/train.log).
 - Decide designs on the VALIDATION split only: `python scripts/compare_runs.py --glob "<pattern>"`.
-- Run at most 2 trainings in parallel (laptop heats up, F21).
+- Run ONE training job (F49): the CPU overheats with 2 (95 C); 1 job with turbo off gives the same throughput.
+  Thermal guard (scripts/windows/thermal_guard.ps1, started by queue_start.ps1) pauses jobs at 78 C, resumes at 70 C.
+  Turbo is off on AC (max processor state 99%); restore: powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
 
 ## Data facts (Phase 2)
 - `python scripts/prepare_data.py` -> data/processed/nf_unsw.npz (+ _manifest.json); `python scripts/make_partitions.py` -> partitions/nf_unsw_alpha{a}_k{K}_seed{s}.npz.

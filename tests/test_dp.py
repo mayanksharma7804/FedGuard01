@@ -143,3 +143,24 @@ def test_radius_hardly_depends_on_client_size_at_one_epsilon():
     cfg["dp"] = {"epsilon": 3.0, "clip": 2.0}
     r = [dp.noise_radius(dp.client_privacy_plan(n, cfg), 40_266) for n in (1200, 3300, 11000, 18500)]
     assert max(r) / min(r) < 1.25
+
+
+def test_flower_client_attack_round_matches_engine():
+    """The Flower client applies the same attack as our engine (same attackers, same poisoned update)."""
+    import copy as _copy
+    from fedguard.flower_strategy import client_round, is_attacker
+    data = toy_data()
+    parts = dirichlet_partition(data.y_tr, 4, 0.5, min_size=50, seed=2)
+    for kind in ("sign_flip", "gaussian", "label_flip"):
+        cfg = fl_cfg(4, max_rounds=4, local_epochs=1, clients=4)
+        cfg["dp"] = {"epsilon": 3.0, "clip": 1.0}
+        cfg["attack"] = {"type": kind, "fraction": 0.5}
+        s = FLSimulation(cfg, data, parts, torch.device("cpu"), log=lambda *a: None)
+        g = flat(s.global_model)
+        assert [is_attacker(cfg, c.cid) for c in s.clients] == list(s.is_attacker)
+        c = next(c for c in s.clients if c.is_attacker)
+        engine = s.local_train(c, g, rnd=2)
+        model = _copy.deepcopy(s.global_model)
+        _, meta = client_round(model, data.X_tr[c.idx], data.y_tr[c.idx], cfg, c.cid, 2, s.loss_fn, torch.device("cpu"))
+        assert torch.allclose(flat(model) - g, engine["delta"], atol=1e-5), kind
+        assert meta == engine["meta"]

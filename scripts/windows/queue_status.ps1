@@ -11,4 +11,9 @@ if ($procs) { Write-Host "Training processes: $($procs.Count)" } else { Write-Ho
 foreach ($f in "PAUSE", "PAUSE_AFTER_RUN") { if (Test-Path "results\runs\$f") { Write-Host "pause requested: results\runs\$f" } }
 Get-ChildItem logs\queue_s?.log -ErrorAction SilentlyContinue | ForEach-Object {
     Write-Host "--- $($_.Name)"; Get-Content $_.FullName -Tail 2 }
-nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used --format=csv,noheader
+$cpu = try { $s = (Get-Counter "\Thermal Zone Information(*)\Temperature" -ErrorAction Stop).CounterSamples
+    [math]::Round((($s | Measure-Object CookedValue -Maximum).Maximum) - 273.15, 1) } catch { "n/a" }
+$gpu = nvidia-smi --query-gpu=temperature.gpu,utilization.gpu --format=csv,noheader
+Write-Host "CPU $cpu C   GPU $gpu   throttle: $(Test-Path 'results
+uns\THROTTLE')"
+if (Test-Path logs\thermal.log) { Get-Content logs\thermal.log -Tail 3 }

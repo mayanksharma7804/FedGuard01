@@ -20,10 +20,31 @@ def get_device(pref: str = "auto") -> torch.device:
     return torch.device(pref)
 
 
-def make_loader(X, y, batch_size, shuffle=True, seed=0) -> DataLoader:
-    ds = TensorDataset(torch.as_tensor(X, dtype=torch.float32), torch.as_tensor(y, dtype=torch.long))
+class BatchTensorDataset(TensorDataset):
+    """TensorDataset that hands out a whole batch with ONE indexing operation (`__getitems__`) instead of
+    one Python call per row + a CPU stack. With the tensors on the GPU the batch is gathered on the GPU,
+    which takes most of the per-step work off the CPU (cooler laptop, faster). Same rows in the same order
+    as the row-by-row path, so results are identical (tests/test_train.py)."""
+
+    def __getitems__(self, indices):
+        idx = torch.as_tensor(indices, dtype=torch.long, device=self.tensors[0].device)
+        return tuple(t[idx] for t in self.tensors)
+
+
+def _batch_as_is(batch):
+    """collate_fn for BatchTensorDataset: the batch is already (X, y). Module-level so it can be pickled."""
+    return batch
+
+
+def make_loader(X, y, batch_size, shuffle=True, seed=0, device=None) -> DataLoader:
+    """DataLoader over (X, y). device='cuda' keeps the data resident on the GPU (batches gathered there).
+    The sampler's generator stays on the CPU, so batch composition is the same on every device."""
+    dev = torch.device("cpu") if device is None else torch.device(device)
+    ds = BatchTensorDataset(torch.as_tensor(X, dtype=torch.float32).to(dev),
+                            torch.as_tensor(y, dtype=torch.long).to(dev))
     gen = torch.Generator().manual_seed(seed)
-    return DataLoader(ds, batch_size=batch_size, shuffle=shuffle, generator=gen, num_workers=0)
+    return DataLoader(ds, batch_size=batch_size, shuffle=shuffle, generator=gen, num_workers=0,
+                      collate_fn=_batch_as_is)
 
 
 def class_weights(y, n_classes, mode="none"):
@@ -77,7 +98,7 @@ def fit_centralised(model, data, cfg, device, log=print):
     """Train on ALL training data (baseline B0). Returns (best model, history list, info dict)."""
     t = cfg["train"]
     model.to(device)
-    loader = make_loader(data.X_tr, data.y_tr, t["batch_size"], shuffle=True, seed=cfg["seed"])
+    loader = make_loader(data.X_tr, data.y_tr, t["batch_size"], shuffle=True, seed=cfg["seed"], device=device)
     w = class_weights(data.y_tr, data.n_classes, t["class_weight"])
     loss_fn = nn.CrossEntropyLoss(weight=None if w is None else w.to(device))
     opt = make_optimizer(model, t["lr"])
