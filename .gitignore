@@ -17,3 +17,6 @@ __pycache__/
 
 # live-demo rehearsal outputs (re-created by scripts/windows/demo_flower.ps1)
 results/demo_*/
+
+# run exports for moving results between machines (scripts/export_runs.py)
+results/exports/

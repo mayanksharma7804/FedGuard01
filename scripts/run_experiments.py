@@ -16,6 +16,7 @@ Finished runs (metrics_test.json exists) are skipped, so a crashed or stopped sw
 again (--force re-runs). Two shards (--shard 0/2 and --shard 1/2) in two terminals = 2 runs in parallel.
 """
 import argparse
+import hashlib
 import itertools
 import json
 import os
@@ -192,8 +193,16 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--threads", type=int, default=int(os.environ.get("FEDGUARD_THREADS", "2")),
                     help="CPU threads for torch per process (training is GPU-bound; fewer threads = cooler CPU)")
+    ap.add_argument("--skip-file", help="text file of run names finished on ANOTHER machine (one per line, as written "
+                                        "by scripts/export_runs.py); they are treated as done")
+    ap.add_argument("--max-hours", type=float, help="do not START a new run after this many hours (e.g. 11 on Kaggle, "
+                                                    "whose sessions end at 12 h); finished runs stay complete")
     args = ap.parse_args()
     torch.set_num_threads(max(1, args.threads))
+    t_start = time.time()
+    elsewhere = set()
+    if args.skip_file and Path(args.skip_file).exists():
+        elsewhere = {ln.strip() for ln in open(args.skip_file, encoding="utf-8") if ln.strip() and not ln.startswith("#")}
 
     if args.sweep:
         configs, seen = [], set()
@@ -207,14 +216,25 @@ def main():
         k, v = kv.split("=", 1)
         for cfg in configs:
             set_dotted(cfg, k, parse_value(v))
+    queue_id = hashlib.sha256("|".join(run_name(c) for c in configs).encode()).hexdigest()[:8]
     i, n = map(int, args.shard.split("/"))
+    total = len(configs)
     configs = configs[i::n]
-    print(f"{len(configs)} run(s) in shard {args.shard}")
+    print(f"queue id {queue_id} ({total} runs in the whole queue) - {len(configs)} run(s) in shard {args.shard}"
+          + (f", {len(elsewhere)} run names finished elsewhere" if elsewhere else ""), flush=True)
     for cfg in configs:
+        name = run_name(cfg)
         if args.dry_run:
-            done = (RUNS / run_name(cfg) / "metrics_test.json").exists()
-            print(("  [done] " if done else "  [todo] ") + run_name(cfg))
+            done = (RUNS / name / "metrics_test.json").exists()
+            print(("  [done] " if done else "  [done-elsewhere] " if name in elsewhere else "  [todo] ") + name)
             continue
+        if name in elsewhere and not args.force:
+            print(f"[skip] {name} finished on another machine")
+            continue
+        if args.max_hours is not None and (time.time() - t_start) / 3600 >= args.max_hours:
+            print(f"TIME LIMIT ({args.max_hours:g} h) reached before {name}: every earlier run is complete. "
+                  f"Export the results now.", flush=True)
+            return
         if pause_requested() or PAUSE_AFTER_RUN.exists():
             print(f"PAUSED (before {run_name(cfg)}, every earlier run is complete): delete the PAUSE file and "
                   f"start the sweep again to continue", flush=True)
