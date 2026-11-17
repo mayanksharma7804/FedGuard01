@@ -42,7 +42,7 @@ flwr 1.39.0. Do not upgrade mid-project.
 - Tests:           python -m pytest -q
 - One experiment:  python scripts/run_experiments.py --config configs/<name>.yaml
 - Sweep:           python scripts/run_experiments.py --sweep configs/sweeps/main.yaml --resume
-- Plots:           python scripts/collect_results.py && python scripts/make_plots.py
+- Plots:           python scripts/collect_results.py && python scripts/make_plots.py   (groups: --b1 --b2 --tune --e5 --mixed --e4 --e6 --e7)
 
 ## Flower 1.39 facts (see docs/flower_windows.md)
 Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv\Scripts on PATH
@@ -57,8 +57,16 @@ Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM 
 - Pause:        scripts\windows\queue_pause.ps1  (after the round)  /  -AfterRun (after the run)
 - Status:       scripts\windows\queue_status.ps1
 To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
-Next: when the 16 p7_fedguard_tune runs finish -> compare_runs on VALIDATION (mean of none + sign_flip),
-freeze FedGuard settings (F50), then queue B5 grid, mixed-eps FedGuard, E4 FedGuard, E6 ablation, E7 stress.
+Next - FREEZE FedGuard (F50) when all 16 p7_fedguard_tune runs are done (python scripts/make_plots.py --tune):
+  1. Pick the row with the highest mean_val_macro_f1 in results/p7_fedguard_tune/selection_val.csv (VALIDATION only;
+     the rule was fixed before the results: same protocol as AutoGM's lambda, F39). Look at HRR / attacker share too
+     and write the reasoning in Findings F50.
+  2. Write configs/fedguard_frozen.yaml:  fl: {aggregator: {name: fedguard, <EXACTLY the keys/values of that row>}}
+     (same keys as the tune grid, so its seed-42 runs are re-used). Set the same dict in configs/demo_fedguard.yaml.
+  3. queue_pause.ps1, wait, append to configs/sweeps/QUEUE.txt (in this order): e5_fedguard, mixed_eps_fedguard,
+     e4_conflict_fedguard, e6_ablation_*.yaml (5 files), e7_stress_fedguard, e7_stress_eps_fedguard,
+     e7_stress_baselines, e7_stress_eps_baselines; queue_start.ps1. (~135 runs, ~65 h incl. what is left.)
+  4. Re-test the demo with the frozen settings (pause the queue first).
 Then: plots, phase notes P6-P8 rewrite, report, PPT, viva pack.
 Demo (docs/demo.md, scripts/windows/demo_flower.ps1, scripts/demo_dashboard.py) WORKS end to end (3-round test,
 ~25 s/round). configs/demo_fedguard.yaml is PROVISIONAL: with lam_scale 1 the eps-1 hospital (client 1) was cut in
