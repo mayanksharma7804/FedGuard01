@@ -18,6 +18,15 @@ from fedguard.fl_sim import flat, poison_delta, round_seed, set_flat
 from fedguard.train import make_loader, make_optimizer, train_epoch
 
 
+def write_csv_atomic(rows, path):
+    """Write rows (list of dicts) to CSV via a temporary file, so a reader never sees half a file."""
+    import os
+    import pandas as pd
+    tmp = f"{path}.tmp"
+    pd.DataFrame(rows).to_csv(tmp, index=False)
+    os.replace(tmp, path)
+
+
 def vec_from_arrays(template_model, arrays: ArrayRecord) -> torch.Tensor:
     m = copy.deepcopy(template_model)
     m.load_state_dict(arrays.to_torch_state_dict())
@@ -70,8 +79,10 @@ def client_round(model, X, y, cfg, cid, rnd, loss_fn, device):
 class AggregatorStrategy(FedAvg):
     """FedAvg message flow + our aggregator. Records per-round client weights for the demo dashboard."""
 
-    def __init__(self, template_model, aggregator: str, params: dict, radius_fn=None, **kwargs):
+    def __init__(self, template_model, aggregator: str, params: dict, radius_fn=None, live_csv=None, **kwargs):
+        """live_csv: if given, the weights log is rewritten there after every round (live demo dashboard)."""
         super().__init__(**kwargs)
+        self.live_csv = live_csv
         self.template = template_model
         self.aggregate_fn = get_aggregator(aggregator)
         self.params = params
@@ -94,10 +105,16 @@ class AggregatorStrategy(FedAvg):
         metas = [dict(m.content["metrics"]) for m in valid]
         n = np.array([mt["num-examples"] for mt in metas], dtype=float)
         r = np.array([self.radius_fn(mt) for mt in metas])
-        z, w, _ = self.aggregate_fn(X.astype(np.float64), n, r, self.params)
+        z, w, info = self.aggregate_fn(X.astype(np.float64), n, r, self.params)
         new = g + torch.as_tensor(z, dtype=g.dtype)
-        for mt, wi in zip(metas, w):
-            self.weights_log.append({"round": server_round, "client": int(mt["cid"]), "weight": float(wi),
-                                     "declared_radius": float(self.radius_fn(mt))})
+        for k, (mt, wi) in enumerate(zip(metas, w)):
+            row = {"round": server_round, "client": int(mt["cid"]), "weight": float(wi),
+                   "declared_radius": float(r[k]), "delta_norm": float(np.linalg.norm(X[k]))}
+            for key in ("dist", "residual", "excess"):
+                if key in info:
+                    row[key] = float(info[key][k])
+            self.weights_log.append(row)
+        if self.live_csv is not None:
+            write_csv_atomic(self.weights_log, self.live_csv)
         loss = float(np.average([mt["train_loss"] for mt in metas], weights=n))
         return arrays_from_vec(self.template, new), MetricRecord({"train_loss": loss})

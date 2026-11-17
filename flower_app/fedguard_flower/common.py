@@ -13,6 +13,8 @@ from fedguard.utils import REPO_ROOT
 def setup(run_config):
     cfg = load_config(REPO_ROOT / run_config["config"],
                       {"seed": int(run_config["seed"]), "train": {"device": run_config["device"]}})
+    if run_config.get("aggregator"):                       # e.g. --run-config "aggregator='fedavg'" (demo baseline)
+        cfg["fl"]["aggregator"] = {"name": str(run_config["aggregator"])}
     data = load_processed(cfg["dataset"])
     parts, _ = load_partition(partition_path(cfg["dataset"], cfg["fl"]["alpha"], cfg["fl"]["clients"], cfg["seed"]),
                               fingerprint=data.fingerprint)

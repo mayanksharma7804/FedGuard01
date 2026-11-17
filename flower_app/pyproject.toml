@@ -25,3 +25,4 @@ num-rounds = 5
 seed = 42
 device = "cpu"
 out-dir = "results/flower_parity"
+aggregator = ""                       # optional override of the config's aggregator (e.g. "fedavg")

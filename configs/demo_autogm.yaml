@@ -1,0 +1,21 @@
+# Live demo (plan 13.3): 5 organisations on Flower, one gaussian attacker (client 0, from seed 42) and
+# mixed privacy - client 1 is the most private "hospital" (eps 1). Small and fast: 1 local epoch, 10 rounds
+# (the privacy budget covers exactly these 10 rounds). Used by scripts\windows\demo_flower.ps1.
+# What to show: the attacker's weight drops to 0; with AutoGM the eps-1 hospital is also silenced (weight 0),
+# with FedGuard it keeps a normal weight (Findings F47). Accuracy is not the point of a 10-round demo.
+# same model / client settings as every experiment (CNN-LSTM, plain SGD lr 0.2, batch 256, C = 2)
+name: demo_autogm
+dataset: nf_unsw
+seed: 42
+model: {conv1: 32, conv2: 64, hidden: 64, dropout: 0.3}
+train: {lr: 0.2, batch_size: 256, class_weight: none, eval_batch: 4096, device: auto}
+fl:
+  clients: 5
+  alpha: 0.5
+  local_epochs: 1
+  max_rounds: 10
+  patience: 10
+  min_rounds: 10
+  aggregator: {name: autogm, lam_scale: 4.0, outer: 20}   # tuned on validation (F39)
+dp: {epsilon: [3.0, 1.0, 8.0, 8.0, 3.0], delta: auto, clip: 2.0}
+attack: {type: gaussian, fraction: 0.2}
