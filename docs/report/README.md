@@ -7,9 +7,9 @@ college requires (plan decision D7).
 
 | Ch. | Title | Source | Status |
 |---|---|---|---|
-| 1 | Introduction | paper sections 1.1-1.5 (hospital/bank story, why the two defences do not compose) - change "this paper presents no implementation" to the implemented system | to adapt from the paper |
+| 1 | Introduction | paper sections 1.1-1.5; replace 1.5 as in `03_paper_updates.md` | to adapt from the paper |
 | 2 | Literature review | paper sections 2-3 (25 studies, Tables I-IV) | to adapt from the paper |
-| 3 | Problem statement and objectives | paper sections 4-6: Gap 1, objectives O1-O5, central hypothesis; update 6.2 with R1-R4 + s floor and 6.4 with decisions D1-D7 | to adapt from the paper |
+| 3 | Problem statement and objectives | paper sections 4-6 with the corrections in `03_paper_updates.md` (radius formula, R1-R4 + s floor, K, evaluation plan, D1-D7) | corrections drafted |
 | 4 | Methodology | `04_methodology.md` | draft done |
 | 5 | Experimental setup | `05_experimental_setup.md` | draft done; status column to finalise |
 | 6 | Results and discussion | phase notes P2-P8, Findings, `results/figures/`, tables in `results/*/summary.csv` | after the FedGuard experiments |
