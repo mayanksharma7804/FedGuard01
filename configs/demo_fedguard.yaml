@@ -16,6 +16,6 @@ fl:
   max_rounds: 10
   patience: 10
   min_rounds: 10
-  aggregator: {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 1.0, outer: 20, noise_tol_z: 3.0, s_floor: noise}   # PROVISIONAL - set to the settings frozen on validation (F50)
+  aggregator: {name: fedguard, mode: quadrature, k_mad: 2.0, lam_scale: 4.0, outer: 20, noise_tol_z: 3.0, s_floor: noise}   # frozen on validation (F50)
 dp: {epsilon: [3.0, 1.0, 8.0, 8.0, 3.0], delta: auto, clip: 2.0}
 attack: {type: gaussian, fraction: 0.2}

@@ -66,6 +66,15 @@ else
   mapfile -t SWEEPS < <(grep -vE '^\s*(#|$)' configs/sweeps/QUEUE.txt)
 fi
 SKIP=(); [[ -f results/done_runs.txt ]] && SKIP=(--skip-file results/done_runs.txt)
+# runs reserved for OTHER machines (results/reserved/reserved_<labels>.txt): skip every list whose file name does not
+# contain this machine's label (e.g. kaggle-2 keeps reserved_kaggle-2_kaggle-3_kaggle-4.txt, skips reserved_laptop.txt)
+for f in results/reserved/reserved_*.txt; do
+  [[ -f "$f" ]] || continue
+  if [[ "$(basename "$f")" != *"$FEDGUARD_MACHINE"* ]]; then
+    [[ ${#SKIP[@]} -eq 0 ]] && SKIP=(--skip-file)
+    SKIP+=("$f"); echo "  skipping runs reserved for others: $f"
+  fi
+done
 IFS=',' read -ra IDX <<< "$MACHINES_IDX"
 NGPU=$(nvidia-smi -L | wc -l)
 say "Queue share(s) ${IDX[*]} of $N (runs: $ONLY) on $NGPU GPU(s); no new run starts after $HOURS h"

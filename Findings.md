@@ -57,6 +57,7 @@ It is updated after every phase.
 | [F47](#f47) | 9 | **Under mixed privacy AutoGM gives weight 0 to the four MOST private (eps 1) clients, not the eps 8 ones as F45 said; FedGuard keeps them** | Result |
 | [F48](#f48) | 7 | FedGuard's allowance s collapses to 0 under DP (more than half the residuals are hidden by noise); optional floor s_floor = "noise" added and tuned on validation | Method |
 | [F49](#f49) | 6-9 | On this laptop the CPU (not the GPU) overheats: 95 C with 2 jobs; 1 job + turbo off + 2 threads + thermal guard keeps it at <= ~80 C with the same throughput | Measurement |
+| [F50](#f50) | 7 | **FedGuard settings frozen on validation: quadrature + R4 + s floor, lambda_scale 4 (mean val macro-F1 0.1780, honest rejection 0.005); at one shared eps 3 no setting excludes sign-flip attackers (26-29% weight)** | Decision |
 | [F51](#f51) | 6-9 | The separate thermal-guard process died when a Claude Code session ended and left its pause file behind: training waited ~40 min until the laptop was shut down; guard moved into the training process, jobs launched through WMI | Incident |
 
 ---
@@ -558,4 +559,25 @@ It is updated after every phase.
 - **What we found:** At 00:56:31 the guard (`thermal_guard.ps1`) created `results/runs/THROTTLE` (CPU 76.9 C) and then stopped logging: it had been started from a Claude Code shell, and ending that session killed the processes started from it. The training process (started from a different shell) survived but waited before its next client for the file to disappear, which never happened. The laptop was shut down by the user at 01:38 (event 1074) and booted at 11:28. Nothing was lost except time: the run resumed from its round-19 checkpoint.
 - **Decision / impact:** The thermal guard is now a thread inside every training process (`run_experiments.py --thermal-high/--thermal-low/--thermal-every`, same thresholds 75 / 68 C every 25 s, same `logs/thermal.log`), so protection exists exactly while training runs and can never strand it; `thermal_guard.ps1` is retired. `queue_start.ps1` launches jobs through WMI (parent process: WmiPrvSE), so closing a window or ending a Claude session does not stop them - only `queue_pause.ps1` does. Lesson (as F41): an unattended job needs every safety mechanism to fail safe, not just to work.
 - **Follow-up (same day):** the first WMI-launched job ran **~3.7x slower** (139 s per round instead of 37 s) at low temperature with the GPU clock at 277 MHz: Windows 11 treated the windowless process as background and applied power throttling (EcoQoS). `run_experiments.py` now opts its process out (`SetProcessInformation`, ProcessPowerThrottling, execution speed never throttled; logged as 'power throttling (EcoQoS) disabled ... True'); rounds went back to 36-37 s. With the fans on Max, turbo boost on vs off was measured: 36.7 vs 36.4 s per round and the same ~25 s cooling pause about every 2 minutes - the job is no longer limited by CPU clock speed, so turbo stays off (same speed, less power). Effective pace: ~44 s per round including pauses, ~30 min per 40-round run.
+
+### F50
+**FedGuard's settings, chosen on the validation split: quadrature residual + R4 (z = 3) + s floor + lambda_scale 4. The top two settings are practically tied on macro-F1; they differ strongly in honest rejection. At one shared epsilon of 3, no setting keeps sign-flip attackers below their share.**
+- **What we did:** 8 settings (one change at a time from the guide's default: R2 mode, R4, s floor, lambda_scale; `configs/sweeps/p7_fedguard_tune.yaml`), each with no attack and with 30% sign-flip attackers, K = 10, alpha 0.5, epsilon 3, seed 42, 40-round budget. Rule fixed before the results (same protocol as AutoGM's lambda, F39): the highest mean **validation** macro-F1 over the two scenarios. No test number was looked at.
+- **What we found (validation):**
+
+  | Setting | val macro-F1 none / sign flip | mean | HRR (none) | attackers' weight (sign flip) |
+  |---|---|---|---|---|
+  | **quadrature + R4 + s floor, lambda 4** | 0.2040 / **0.1520** | **0.1780** | **0.005** | 0.289 |
+  | linear, lambda 1 (guide default rule) | 0.2069 / 0.1489 | 0.1779 | 0.200 | 0.261 |
+  | linear + R4 + s floor, lambda 4 | 0.2043 / 0.1461 | 0.1752 | 0.005 | 0.278 |
+  | linear + R4 + s floor, lambda 1 | 0.2043 / 0.1455 | 0.1749 | 0.005 | 0.280 |
+  | quadrature, lambda 1 | 0.2056 / 0.1427 | 0.1742 | 0.115 | 0.287 |
+  | quadrature + R4 + s floor, lambda 1 | 0.2043 / 0.1424 | 0.1734 | 0.005 | 0.283 |
+  | quadrature + R4, lambda 1 | 0.1995 / 0.1400 | 0.1697 | 0.020 | 0.271 |
+  | linear + R4, lambda 1 | 0.1995 / 0.1357 | 0.1676 | 0.020 | 0.266 |
+
+  - The spread of mean validation macro-F1 is small (0.168-0.178; single seed), and the top two differ by 0.0001: macro-F1 hardly separates the settings in this scenario. Honest rejection does: without the s floor (and R4) FedGuard wrongly sidelines 11.5-20% of honest clients on clean data, with it 0.5%. The s floor, which fixes the s = 0 collapse (F48), appears in the four best settings.
+  - **Sign-flip attackers keep 26-29% of the weight in every setting** (their share of clients: 30%; their share of the data, which FedAvg gives them: 21%). This was predicted (F39): at one shared epsilon of 3 a sign-flipped update moves ~1-1.5 further than an honest one, while every update carries noise of length ~13 that wobbles by ~0.07 per client and by +/-10% between clients - the attack is buried in the noise for every distance-based method.
+- **Evidence:** `results/p7_fedguard_tune/selection_val.csv` (`python scripts/make_plots.py --tune`); runs `results/runs/k10_a0.5_k10_e5_fedguard-*_eps3_c2*_s42_*`.
+- **Decision / impact:** **Frozen** in `configs/fedguard_frozen.yaml` for every FedGuard test-set experiment (E5, mixed privacy, E4, E6 ablation, E7 stress) and the live demo; not changed after any test result is seen. Report both facts honestly: the choice rests on a near-tie on macro-F1 and a large difference in honest rejection, and at a shared epsilon FedGuard is not expected to beat AutoGM on sign flip - its distinctive claim is tested where clients have different privacy levels (mixed privacy, E4).
 

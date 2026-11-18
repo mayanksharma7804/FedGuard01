@@ -5,3 +5,16 @@ configs/sweeps/p6_autogm.yaml
 configs/sweeps/p6_autogm_nodp.yaml
 configs/sweeps/mixed_eps_baselines.yaml
 configs/sweeps/e4_conflict_autogm.yaml
+# --- after the FedGuard freeze (F50, 18 Nov 19:05): main FedGuard experiments ---
+configs/sweeps/e5_fedguard.yaml
+configs/sweeps/mixed_eps_fedguard.yaml
+configs/sweeps/e4_conflict_fedguard.yaml
+configs/sweeps/e6_ablation_mode.yaml
+configs/sweeps/e6_ablation_noise_tol_z.yaml
+configs/sweeps/e6_ablation_s_floor.yaml
+configs/sweeps/e6_ablation_lam_scale.yaml
+configs/sweeps/e6_ablation_use_r_eff.yaml
+configs/sweeps/e7_stress_fedguard.yaml
+configs/sweeps/e7_stress_eps_fedguard.yaml
+configs/sweeps/e7_stress_baselines.yaml
+configs/sweeps/e7_stress_eps_baselines.yaml
