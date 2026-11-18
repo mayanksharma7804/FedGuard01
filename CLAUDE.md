@@ -49,31 +49,18 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 (they spawn flower-superexec); custom strategy = subclass serverapp.strategy.FedAvg and override
 aggregate_train(server_round, replies).
 
-## Current phase (18 Nov 2026)
-Phases 1-5 DONE. 21-31 Oct (20 rounds / patience 5 / min 5) runs are SUPERSEDED (F46) and live in
-results/runs/_superseded_20round_F46/ - never use them. k10_base is back to 40 / 15 / 10.
-Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM B3/B4, mixed-eps baselines, E4).
-- Start/resume: powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1   (1 detached job with built-in thermal guard, logs\queue_s0.log)
-- Pause:        scripts\windows\queue_pause.ps1  (after the round)  /  -AfterRun (after the run)
-- Status:       scripts\windows\queue_status.ps1
-To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
-Other machines (docs/FedGuard_Faster_Training_Guide.pdf): -Machine k -Machines N shards; -Only dp|nodp splits by run
-type (a CPU-only laptop takes -Only nodp); results/done_runs.txt (git) is skipped everywhere; import zips with
-scripts/import_runs.py, then export_runs.py --publish-done + push. All machines must print the same queue id.
-Next - FREEZE FedGuard (F50) when all 16 p7_fedguard_tune runs are done (python scripts/make_plots.py --tune):
-  1. Pick the row with the highest mean_val_macro_f1 in results/p7_fedguard_tune/selection_val.csv (VALIDATION only;
-     the rule was fixed before the results: same protocol as AutoGM's lambda, F39). Look at HRR / attacker share too
-     and write the reasoning in Findings F50.
-  2. Write configs/fedguard_frozen.yaml:  fl: {aggregator: {name: fedguard, <EXACTLY the keys/values of that row>}}
-     (same keys as the tune grid, so its seed-42 runs are re-used). Set the same dict in configs/demo_fedguard.yaml.
-  3. queue_pause.ps1, wait, append to configs/sweeps/QUEUE.txt (in this order): e5_fedguard, mixed_eps_fedguard,
-     e4_conflict_fedguard, e6_ablation_*.yaml (5 files), e7_stress_fedguard, e7_stress_eps_fedguard,
-     e7_stress_baselines, e7_stress_eps_baselines; queue_start.ps1. (~135 runs, ~65 h incl. what is left.)
-  4. Re-test the demo with the frozen settings (pause the queue first).
-Then: plots, phase notes P6-P8 rewrite, report, PPT, viva pack.
-Demo (docs/demo.md, scripts/windows/demo_flower.ps1, scripts/demo_dashboard.py) WORKS end to end (3-round test,
-~25 s/round). configs/demo_fedguard.yaml is PROVISIONAL: with lam_scale 1 the eps-1 hospital (client 1) was cut in
-rounds 1 and 3 of the E=1 demo - set the frozen F50 settings, re-test 10 rounds, report what it shows.
+## Current phase (18 Nov 2026, 19:40)
+Phases 1-5 DONE; FedGuard FROZEN on validation (F50, configs/fedguard_frozen.yaml); main experiments queued
+(QUEUE.txt, queue id fd9b7f16, 144 runs, 100 to do at the freeze). Superseded 20-round runs: never use (F46).
+WHO TRAINS WHAT (results/reserved/*.txt, tracked): kaggle-1 = its 18 E4 runs (session 1 ends ~21:00, session 2 for
+leftovers); kaggle-2..kaggle-6 = the other 82 (tag kaggle-session-3, MACHINES 10, shares 0,1 / 2,3 / 4,5 / 6,7 / 8,9).
+The MAIN LAPTOP IS PAUSED (results/runs/PAUSE exists) - it does imports, plots and writing, no training.
+When a Kaggle zip arrives: copy to results/exports/, import_runs.py --check then import, collect_results,
+export_runs.py --publish-done, commit "Import kaggle-N results", push. Then make_plots.py and fill report 6.6-6.9.
+Pending: cross-machine check (one run on two GPUs, Findings), P6-P8 notes rewrite, README results, deck.
+- Start/resume local training (only if needed): scripts\windows\queue_start.ps1 (detached, built-in thermal guard)
+- Pause / status: scripts\windows\queue_pause.ps1 / queue_status.ps1
+Other machines: docs/FedGuard_Faster_Training_Guide.pdf; all print the same queue id.
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).

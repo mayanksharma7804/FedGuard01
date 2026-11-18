@@ -59,6 +59,7 @@ It is updated after every phase.
 | [F49](#f49) | 6-9 | On this laptop the CPU (not the GPU) overheats: 95 C with 2 jobs; 1 job + turbo off + 2 threads + thermal guard keeps it at <= ~80 C with the same throughput | Measurement |
 | [F50](#f50) | 7 | **FedGuard settings frozen on validation: quadrature + R4 + s floor, lambda_scale 4 (mean val macro-F1 0.1780, honest rejection 0.005); at one shared eps 3 no setting excludes sign-flip attackers (26-29% weight)** | Decision |
 | [F51](#f51) | 6-9 | The separate thermal-guard process died when a Claude Code session ended and left its pause file behind: training waited ~40 min until the laptop was shut down; guard moved into the training process, jobs launched through WMI | Incident |
+| [F52](#f52) | 8 | Live demo with the frozen settings: AutoGM rejects the eps-1 "hospital" in 10 of 10 rounds (weight 0.05), FedGuard in 5 of 10 (mean weight 0.148); both give the attacker 0 | Result |
 
 ---
 
@@ -580,4 +581,11 @@ It is updated after every phase.
   - **Sign-flip attackers keep 26-29% of the weight in every setting** (their share of clients: 30%; their share of the data, which FedAvg gives them: 21%). This was predicted (F39): at one shared epsilon of 3 a sign-flipped update moves ~1-1.5 further than an honest one, while every update carries noise of length ~13 that wobbles by ~0.07 per client and by +/-10% between clients - the attack is buried in the noise for every distance-based method.
 - **Evidence:** `results/p7_fedguard_tune/selection_val.csv` (`python scripts/make_plots.py --tune`); runs `results/runs/k10_a0.5_k10_e5_fedguard-*_eps3_c2*_s42_*`.
 - **Decision / impact:** **Frozen** in `configs/fedguard_frozen.yaml` for every FedGuard test-set experiment (E5, mixed privacy, E4, E6 ablation, E7 stress) and the live demo; not changed after any test result is seen. Report both facts honestly: the choice rests on a near-tie on macro-F1 and a large difference in honest rejection, and at a shared epsilon FedGuard is not expected to beat AutoGM on sign flip - its distinctive claim is tested where clients have different privacy levels (mixed privacy, E4).
+
+### F52
+**Live demo (5 organisations on Flower, 10 rounds, frozen settings): both aggregators give the gaussian attacker weight 0; AutoGM silences the epsilon-1 "hospital" in every round, FedGuard only in half of them.**
+- **What we did:** `scripts/windows/demo_flower.ps1` with `configs/demo_fedguard.yaml` / `demo_autogm.yaml`: K = 5 (alpha 0.5, seed 42), 1 local epoch, 10-round privacy budget, epsilon [3, 1, 8, 8, 3] (client 1 = the most private), client 0 = gaussian attacker (10x the honest length), Flower deployment mode on one laptop.
+- **What we found (trust weight per round):** attacker 0.000 in every round for both. Hospital: **AutoGM 0.025-0.057 in all 10 rounds** (rejection threshold 0.5/K = 0.10), while it gives the low-noise epsilon-8 client 2 almost half the weight (0.48); **FedGuard: a full fair share (0.25) in 5 of 10 rounds, 0.034-0.090 in 4, 0 in round 4; mean 0.148** vs 0.284 for the other honest clients. Validation macro-F1 after 10 rounds ~0.12 (not the point of a 10-round, 1-epoch demo).
+- **Evidence:** `results/demo_fedguard/`, `results/demo_autogm/` (flower_weights.csv; replay with `scripts/demo_dashboard.py --dir ...`).
+- **Decision / impact:** The demo shows the effect the paper predicts, but honestly: FedGuard protects the private client partly, not fully, in this small 5-client, 1-epoch setting (few clients make the median / MAD allowance coarse). Say so when presenting; the measured effect on the real experiments is in E4 / mixed privacy.
 
