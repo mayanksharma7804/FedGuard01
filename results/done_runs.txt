@@ -40,7 +40,11 @@ k10_a0.5_k10_e5_eps3_c2_s44_983974
 k10_a0.5_k10_e5_eps3_c2_sign_flip0.3_s42_d9a8a6
 k10_a0.5_k10_e5_eps3_c2_sign_flip0.3_s43_3a50b6
 k10_a0.5_k10_e5_eps3_c2_sign_flip0.3_s44_7b49a6
+k10_a0.5_k10_e5_fedguard-k2-lam1-linear-r4z3_eps3_c2_s42_7dd41e
+k10_a0.5_k10_e5_fedguard-k2-lam1-linear_eps3_c2_s42_7b11bb
+k10_a0.5_k10_e5_fedguard-k2-lam1-linear_eps3_c2_sign_flip0.3_s42_f7b5c6
 k10_a0.5_k10_e5_fedguard-k2-lam1-quadrature-r4z3_eps3_c2_s42_a69f58
+k10_a0.5_k10_e5_fedguard-k2-lam1-quadrature-r4z3_eps3_c2_sign_flip0.3_s42_ed9ff9
 k10_a0.5_k10_e5_fedguard-k2-lam1-quadrature_eps3_c2_s42_795423
 k10_a0.5_k10_e5_fedguard-k2-lam1-quadrature_eps3_c2_sign_flip0.3_s42_01ff9d
 k10_a0.5_k10_e5_gaussian0.3_s42_79ad74

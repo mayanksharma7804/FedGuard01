@@ -281,6 +281,9 @@ def main():
     ap.add_argument("--only", choices=["all", "dp", "nodp"], default="all",
                     help="take only runs with DP ('dp', for GPU machines) or without DP ('nodp': nearly as fast on a "
                          "CPU-only laptop, Findings F06). Applied after the queue id and before --shard.")
+    ap.add_argument("--reverse", action="store_true",
+                    help="work through the queue from the END (applied after --only, before --shard): a helper such as "
+                         "Kaggle takes runs from the back while the main laptop goes from the front - no coordination")
     ap.add_argument("--max-hours", type=float, help="do not START a new run after this many hours (e.g. 11 on Kaggle, "
                                                     "whose sessions end at 12 h); finished runs stay complete")
     args = ap.parse_args()
@@ -314,9 +317,11 @@ def main():
     if args.only != "all":
         want_dp = args.only == "dp"
         configs = [c for c in configs if (c["dp"].get("epsilon") is not None) == want_dp]
+    if args.reverse:
+        configs = configs[::-1]
     configs = configs[i::n]
     print(f"queue id {queue_id} ({total} runs in the whole queue) - {len(configs)} run(s) in shard {args.shard}"
-          + (f" (only {args.only} runs)" if args.only != "all" else "")
+          + (f" (only {args.only} runs)" if args.only != "all" else "") + (" (from the end)" if args.reverse else "")
           + (f", {len(elsewhere)} run names finished elsewhere" if elsewhere else ""), flush=True)
     for cfg in configs:
         name = run_name(cfg)

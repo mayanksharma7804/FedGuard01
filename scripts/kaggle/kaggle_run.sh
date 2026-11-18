@@ -18,6 +18,7 @@ MACHINES_IDX="${1:?machine index (or comma list, or 'smoke')}"
 N="${2:?number of machines}"
 HOURS="${3:-10.5}"
 ONLY="${ONLY:-all}"            # all | dp | nodp - must match how the other machines split the queue
+REVERSE="${REVERSE:-0}"        # 1 = take runs from the END of the queue (main laptop goes from the front)
 DATA="${4:-}"
 cd "$(dirname "$0")/../.."
 REPO="$(pwd)"
@@ -67,7 +68,7 @@ pids=()
 for k in "${!IDX[@]}"; do
   i="${IDX[$k]}"; gpu=$(( k % NGPU ))
   CUDA_VISIBLE_DEVICES=$gpu "$PY" -u scripts/run_experiments.py --sweep "${SWEEPS[@]}" --shard "$i/$N" \
-      "${SKIP[@]}" --only "$ONLY" --max-hours "$HOURS" > "logs/kaggle_shard$i.log" 2>&1 &
+      "${SKIP[@]}" --only "$ONLY" $([[ "$REVERSE" == 1 ]] && echo --reverse) --max-hours "$HOURS" > "logs/kaggle_shard$i.log" 2>&1 &
   pids+=($!)
   echo "  share $i/$N on GPU $gpu -> logs/kaggle_shard$i.log"
 done
