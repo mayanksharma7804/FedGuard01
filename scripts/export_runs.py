@@ -11,6 +11,7 @@ it to the other machines, which skip those runs with  run_experiments.py --skip-
 Import on the main laptop with scripts/import_runs.py.
 """
 import argparse
+import os
 import platform
 import time
 import zipfile
@@ -39,7 +40,8 @@ def main():
                     help="merge the finished run names into results/done_runs.txt (commit + push it)")
     args = ap.parse_args()
     EXPORTS.mkdir(parents=True, exist_ok=True)
-    host = "".join(ch for ch in platform.node() if ch.isalnum() or ch in "-_") or "host"
+    label = os.environ.get("FEDGUARD_MACHINE") or platform.node()
+    host = "".join(ch for ch in label if ch.isalnum() or ch in "-_") or "host"
     runs = finished_runs()
     names = "\n".join(d.name for d in runs) + "\n"
     done_path = EXPORTS / f"done_{host}.txt"

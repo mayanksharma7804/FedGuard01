@@ -19,6 +19,7 @@ N="${2:?number of machines}"
 HOURS="${3:-10.5}"
 ONLY="${ONLY:-all}"            # all | dp | nodp - must match how the other machines split the queue
 REVERSE="${REVERSE:-0}"        # 1 = take runs from the END of the queue (main laptop goes from the front)
+export FEDGUARD_MACHINE="${MACHINE_NAME:-kaggle}"   # label stored in every run's meta.json and the zip name
 DATA="${4:-}"
 cd "$(dirname "$0")/../.."
 REPO="$(pwd)"
@@ -78,7 +79,7 @@ tail -n 3 logs/kaggle_shard*.log
 
 say "Export"
 STAMP=$(date +%Y%m%d-%H%M)
-"$PY" scripts/export_runs.py --out "$OUT/fedguard_runs_kaggle_${MACHINES_IDX//,/-}_of_${N}_${STAMP}.zip"
+"$PY" scripts/export_runs.py --out "$OUT/fedguard_runs_${FEDGUARD_MACHINE}_${STAMP}.zip"
 cp logs/kaggle_shard*.log "$OUT/" 2>/dev/null || true
 echo "DONE - download the zip from the Output tab and run on the main laptop:"
 echo "  python scripts/import_runs.py <zip>"

@@ -15,7 +15,8 @@
 #   GPU laptop:      queue_start.ps1 -Only dp
 #   CPU-only laptop: queue_start.ps1 -Only nodp -Threads 4
 param([int]$Jobs = 1, [int]$Threads = 2, [int]$High = 75, [int]$Low = 68, [int]$Every = 25, [int]$Machine = 0,
-      [int]$Machines = 1, [ValidateSet('all', 'dp', 'nodp')][string]$Only = 'all')
+      [int]$Machines = 1, [ValidateSet('all', 'dp', 'nodp')][string]$Only = 'all',
+      [string]$Name = $env:COMPUTERNAME)
 $ErrorActionPreference = "Stop"
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $Repo
@@ -40,7 +41,7 @@ if ($running) {
         $shard = if ($Machines -gt 1) { "$Machine/$Machines" } else { "$i/$Jobs" }
         $pyArgs = "-u scripts\run_experiments.py --sweep $($Sweeps -join ' ') --shard $shard $skip --threads $Threads " +
                   "--thermal-high $High --thermal-low $Low --thermal-every $Every --only $Only"
-        $cmd = "cmd.exe /s /c `"set OMP_NUM_THREADS=$Threads&& set MKL_NUM_THREADS=$Threads&& `"$Py`" $pyArgs " +
+        $cmd = "cmd.exe /s /c `"set OMP_NUM_THREADS=$Threads&& set MKL_NUM_THREADS=$Threads&& set FEDGUARD_MACHINE=$Name&& `"$Py`" $pyArgs " +
                "> logs\queue_s$i.log 2> logs\queue_s${i}_err.log`""
         $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
             -Arguments @{ CommandLine = $cmd; CurrentDirectory = $Repo; ProcessStartupInformation = $startup }

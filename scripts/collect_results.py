@@ -28,6 +28,7 @@ def row(run_dir):
          "attack": cfg["attack"]["type"], "attack_fraction": cfg["attack"]["fraction"],
          "lr": cfg["train"]["lr"], "best_round": test.get("best_round"), "rounds_run": test.get("rounds_run"),
          "seconds_per_round": test.get("seconds_per_round_mean"), "git_commit": meta.get("git_commit"),
+         "machine": meta.get("machine") or meta.get("host"),     # which machine trained it (bookkeeping only)
          # privacy (Phase 5): target epsilon covers fl.max_rounds; 'spent' = the rounds actually run
          "clip": cfg["dp"].get("clip") if cfg["dp"].get("epsilon") is not None else None,
          "max_rounds": cfg["fl"]["max_rounds"], "epsilon_spent_max": test.get("epsilon_spent_max"),

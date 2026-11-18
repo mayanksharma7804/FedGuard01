@@ -192,6 +192,12 @@ def expand_sweep(path):
     return configs
 
 
+def machine_label():
+    """Which machine trained a run (bookkeeping only - not part of the config or its hash): FEDGUARD_MACHINE if set
+    (e.g. 'kaggle-1', set by the Kaggle notebook), else the computer name."""
+    return os.environ.get("FEDGUARD_MACHINE") or platform.node()
+
+
 def git_commit():
     try:
         return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO_ROOT, capture_output=True,
@@ -245,7 +251,7 @@ def run_one(cfg, force=False):
     pd.DataFrame(rounds).to_csv(run_dir / "rounds.csv", index=False)
     pd.DataFrame(weights_log).to_csv(run_dir / "weights_log.csv", index=False)
     json.dump(val, open(run_dir / "metrics_val.json", "w"), indent=2)
-    json.dump({"git_commit": git_commit(), "host": platform.node(), "torch": torch.__version__,
+    json.dump({"git_commit": git_commit(), "host": platform.node(), "machine": machine_label(), "torch": torch.__version__,
                "finished": time.strftime("%Y-%m-%d %H:%M:%S"), "config_hash": config_hash(cfg)},
               open(run_dir / "meta.json", "w"), indent=2)
     json.dump(test, open(run_dir / "metrics_test.json", "w"), indent=2)   # written last = "finished"
