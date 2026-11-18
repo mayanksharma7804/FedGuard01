@@ -16,7 +16,7 @@
 #   CPU-only laptop: queue_start.ps1 -Only nodp -Threads 4
 param([int]$Jobs = 1, [int]$Threads = 2, [int]$High = 75, [int]$Low = 68, [int]$Every = 25, [int]$Machine = 0,
       [int]$Machines = 1, [ValidateSet('all', 'dp', 'nodp')][string]$Only = 'all',
-      [string]$Name = $env:COMPUTERNAME, [string]$ExtraSkip = "")
+      [string]$Name = [System.Net.Dns]::GetHostName(), [string]$ExtraSkip = "")
 $ErrorActionPreference = "Stop"
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $Repo
