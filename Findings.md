@@ -60,6 +60,7 @@ It is updated after every phase.
 | [F50](#f50) | 7 | **FedGuard settings frozen on validation: quadrature + R4 + s floor, lambda_scale 4 (mean val macro-F1 0.1780, honest rejection 0.005); at one shared eps 3 no setting excludes sign-flip attackers (26-29% weight)** | Decision |
 | [F51](#f51) | 6-9 | The separate thermal-guard process died when a Claude Code session ended and left its pause file behind: training waited ~40 min until the laptop was shut down; guard moved into the training process, jobs launched through WMI | Incident |
 | [F52](#f52) | 8 | Live demo with the frozen settings: AutoGM rejects the eps-1 "hospital" in 10 of 10 rounds (weight 0.05), FedGuard in 5 of 10 (mean weight 0.148); both give the attacker 0 | Result |
+| [F53](#f53) | 6-9 | **Same run on two Kaggle T4s: bit-identical (20 of 20 pairs); Kaggle T4 vs laptop RTX 3050: test macro-F1 differs by 0.0034 (1 pair) - below the seed spread** | Measurement |
 
 ---
 
@@ -588,4 +589,10 @@ It is updated after every phase.
 - **What we found (trust weight per round):** attacker 0.000 in every round for both. Hospital: **AutoGM 0.025-0.057 in all 10 rounds** (rejection threshold 0.5/K = 0.10), while it gives the low-noise epsilon-8 client 2 almost half the weight (0.48); **FedGuard: a full fair share (0.25) in 5 of 10 rounds, 0.034-0.090 in 4, 0 in round 4; mean 0.148** vs 0.284 for the other honest clients. Validation macro-F1 after 10 rounds ~0.12 (not the point of a 10-round, 1-epoch demo).
 - **Evidence:** `results/demo_fedguard/`, `results/demo_autogm/` (flower_weights.csv; replay with `scripts/demo_dashboard.py --dir ...`).
 - **Decision / impact:** The demo shows the effect the paper predicts, but honestly: FedGuard protects the private client partly, not fully, in this small 5-client, 1-epoch setting (few clients make the median / MAD allowance coarse). Say so when presenting; the measured effect on the real experiments is in E4 / mixed privacy.
+
+### F53
+**The same run trained on two different Kaggle T4 sessions is bit-identical (20 of 20 pairs); trained on a Kaggle T4 and on the laptop's RTX 3050 it differs by 0.0034 test macro-F1 (1 pair) - smaller than the seed-to-seed spread.**
+- **What we did:** kaggle-1 started from the older queue (before the explicit reservations of F50) and, being faster than expected (~25 min per run per T4), trained 40 runs, 21 of which had already been trained elsewhere: 20 by kaggle-2/3/4 (also T4) and 1 FedGuard tuning run by the main laptop (RTX 3050). Compared every duplicated pair before importing (`results/exports/cross_machine_kaggle1.csv`, not committed).
+- **What we found:** T4 vs T4: test macro-F1 difference **0.0000 in all 20 pairs**, and the validation macro-F1 is identical in every round - the engine is fully deterministic on the same GPU type, across separate machines and sessions. T4 vs RTX 3050 (run `..._fedguard-k2-lam4-linear-r4z3-sfnoise_eps3_c2_s42_c78ef3`): round 1 identical, then the tiny floating-point differences between GPU models grow over 40 rounds (largest per-round validation difference 0.016, best round 37 vs 40); final test macro-F1 0.1982 vs 0.2016 (**difference 0.0034**). For comparison, the seed-to-seed standard deviation of the same kind of run is 0.006-0.03.
+- **Decision / impact:** Runs from the laptop and from Kaggle are combined in every table; each run's `machine` label is kept in `master.csv`, and the report states that experiments ran on two GPU types. The first imported copy of a duplicated run is kept (the validation-based FedGuard selection, F50, used the laptop's copy). Limitation: only one cross-GPU pair; the cross-GPU effect is small but not zero, so tables do not claim differences smaller than ~0.005 between runs from different GPU types.
 
