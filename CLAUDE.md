@@ -49,11 +49,11 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 (they spawn flower-superexec); custom strategy = subclass serverapp.strategy.FedAvg and override
 aggregate_train(server_round, replies).
 
-## Current phase (17 Nov 2026)
+## Current phase (18 Nov 2026)
 Phases 1-5 DONE. 21-31 Oct (20 rounds / patience 5 / min 5) runs are SUPERSEDED (F46) and live in
 results/runs/_superseded_20round_F46/ - never use them. k10_base is back to 40 / 15 / 10.
 Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM B3/B4, mixed-eps baselines, E4).
-- Start/resume: powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1   (1 job + thermal guard, logs\queue_s0.log)
+- Start/resume: powershell -ExecutionPolicy Bypass -File scripts\windows\queue_start.ps1   (1 detached job with built-in thermal guard, logs\queue_s0.log)
 - Pause:        scripts\windows\queue_pause.ps1  (after the round)  /  -AfterRun (after the run)
 - Status:       scripts\windows\queue_status.ps1
 To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
@@ -78,7 +78,9 @@ rounds 1 and 3 of the E=1 demo - set the frozen F50 settings, re-test 10 rounds,
 - `python scripts/run_centralised.py` (skips finished runs; live log in results/runs/<run>/train.log).
 - Decide designs on the VALIDATION split only: `python scripts/compare_runs.py --glob "<pattern>"`.
 - Run ONE training job (F49): the CPU overheats with 2 (95 C); 1 job with turbo off gives the same throughput.
-  Thermal guard (scripts/windows/thermal_guard.ps1, started by queue_start.ps1) pauses jobs at 75 C, resumes at 68 C, checks every 25 s (user request).
+  Thermal guard = a thread INSIDE each training process (run_experiments --thermal-high 75 --thermal-low 68
+  --thermal-every 25, passed by queue_start.ps1; log logs/thermal.log). queue_start launches jobs through WMI, so
+  they survive closing the window / ending a Claude session (F51). Never start training from a Claude shell any other way.
   Turbo is off on AC (max processor state 99%); restore: powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
 
 ## Data facts (Phase 2)

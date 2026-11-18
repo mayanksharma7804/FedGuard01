@@ -22,6 +22,7 @@ import json
 import os
 import platform
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -41,7 +42,61 @@ PAUSE = RUNS / "PAUSE"          # create this file to pause every running sweep 
 PAUSE_AFTER_RUN = RUNS / "PAUSE_AFTER_RUN"   # ... or this one: finish the current run, then stop (clean boundary)
 
 
-THROTTLE = RUNS / "THROTTLE"    # written by scripts/windows/thermal_guard.ps1 while the laptop is too hot
+THERMAL_LOG = REPO_ROOT / "logs" / "thermal.log"
+CPU_TEMP_PS = ("[math]::Round(((Get-Counter '\\Thermal Zone Information(*)\\Temperature').CounterSamples | "
+               "Measure-Object CookedValue -Maximum).Maximum - 273.15, 1)")
+
+
+class ThermalGuard(threading.Thread):
+    """Keeps the laptop cool (Findings F49). Every `every` seconds it reads the CPU thermal zone (Windows) and the
+    GPU temperature; at >= high C it sets `hot`, and the runner waits before the next client until the hottest
+    sensor is back at <= low C. It lives INSIDE the training process, so it can never die and leave training
+    stuck (that happened once with a separate guard process, 18 Nov) and never outlives the training either.
+    Waiting never changes a result - every client and round is seeded independently of wall time."""
+
+    def __init__(self, high, low, every):
+        super().__init__(daemon=True, name="thermal-guard")
+        self.high, self.low, self.every = high, low, every
+        self.hot = threading.Event()
+        self.flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
+    def _read(self, cmd):
+        try:
+            out = subprocess.run(cmd, capture_output=True, text=True, timeout=20, creationflags=self.flags).stdout
+            return float(out.strip().splitlines()[0].replace(",", "."))
+        except Exception:
+            return None
+
+    def temps(self):
+        cpu = self._read(["powershell", "-NoProfile", "-Command", CPU_TEMP_PS]) if os.name == "nt" else None
+        gpu = self._read(["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"])
+        return cpu, gpu
+
+    def write(self, msg):
+        try:
+            THERMAL_LOG.parent.mkdir(parents=True, exist_ok=True)
+            with open(THERMAL_LOG, "a", encoding="utf-8") as f:
+                f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {msg}\n")
+        except OSError:
+            pass
+
+    def run(self):
+        self.write(f"thermal guard started in the training process (high {self.high:g} C, low {self.low:g} C, "
+                   f"every {self.every:g} s)")
+        while True:
+            cpu, gpu = self.temps()
+            vals = [t for t in (cpu, gpu) if t is not None]
+            if vals:
+                t = max(vals)
+                if t >= self.high and not self.hot.is_set():
+                    self.hot.set(); self.write(f"HOT  cpu {cpu} C  gpu {gpu} C -> cooling pause on")
+                elif t <= self.low and self.hot.is_set():
+                    self.hot.clear(); self.write(f"OK   cpu {cpu} C  gpu {gpu} C -> cooling pause off")
+            self.write(f"temps cpu {cpu} C  gpu {gpu} C  cooling {self.hot.is_set()}")
+            time.sleep(self.every)
+
+
+GUARD = None                    # set in main() when --thermal-high is given
 
 
 def pause_requested() -> bool:
@@ -49,14 +104,13 @@ def pause_requested() -> bool:
 
 
 def wait_while_hot(log=print):
-    """Thermal guard: while results/runs/THROTTLE exists, wait before the next client (GPU and CPU idle).
-    Waiting never changes a result - every client/round is seeded independently of wall time."""
-    if not THROTTLE.exists():
+    """Before each client: wait while the thermal guard says the laptop is too hot (GPU and CPU idle)."""
+    if GUARD is None or not GUARD.hot.is_set():
         return
     t0 = time.time()
     log(f"  [thermal] laptop too hot - waiting to cool down ({time.strftime('%H:%M:%S')})")
-    while THROTTLE.exists() and not PAUSE.exists():
-        time.sleep(5)
+    while GUARD.hot.is_set() and not PAUSE.exists():
+        time.sleep(2)
     log(f"  [thermal] resumed after {time.time() - t0:.0f}s")
 
 
@@ -195,10 +249,18 @@ def main():
                     help="CPU threads for torch per process (training is GPU-bound; fewer threads = cooler CPU)")
     ap.add_argument("--skip-file", help="text file of run names finished on ANOTHER machine (one per line, as written "
                                         "by scripts/export_runs.py); they are treated as done")
+    ap.add_argument("--thermal-high", type=float, help="thermal guard: pause before the next client at this CPU/GPU "
+                                                       "temperature (C); off when not given (queue_start.ps1 passes 75)")
+    ap.add_argument("--thermal-low", type=float, default=68.0, help="thermal guard: resume at this temperature (C)")
+    ap.add_argument("--thermal-every", type=float, default=25.0, help="thermal guard: seconds between readings")
     ap.add_argument("--max-hours", type=float, help="do not START a new run after this many hours (e.g. 11 on Kaggle, "
                                                     "whose sessions end at 12 h); finished runs stay complete")
     args = ap.parse_args()
     torch.set_num_threads(max(1, args.threads))
+    global GUARD
+    if args.thermal_high is not None and not args.dry_run:
+        GUARD = ThermalGuard(args.thermal_high, args.thermal_low, args.thermal_every)
+        GUARD.start()
     t_start = time.time()
     elsewhere = set()
     if args.skip_file and Path(args.skip_file).exists():
@@ -228,7 +290,7 @@ def main():
             done = (RUNS / name / "metrics_test.json").exists()
             print(("  [done] " if done else "  [done-elsewhere] " if name in elsewhere else "  [todo] ") + name)
             continue
-        if name in elsewhere and not args.force:
+        if name in elsewhere and not args.force and not (RUNS / name / "metrics_test.json").exists():
             print(f"[skip] {name} finished on another machine")
             continue
         if args.max_hours is not None and (time.time() - t_start) / 3600 >= args.max_hours:
