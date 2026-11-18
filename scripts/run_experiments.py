@@ -99,6 +99,31 @@ class ThermalGuard(threading.Thread):
 GUARD = None                    # set in main() when --thermal-high is given
 
 
+def disable_power_throttling():
+    """Windows 11 puts processes it sees as 'background' (no visible window, e.g. started through WMI by
+    queue_start.ps1) into EcoQoS power throttling: slow clocks / efficiency cores. Training is bound by one CPU
+    core launching GPU kernels, and throttling made rounds ~3.7x slower (139 s instead of 37 s, 18 Nov, F51).
+    Opt this process out (PROCESS_POWER_THROTTLING_EXECUTION_SPEED with state 0 = never throttle)."""
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class PowerThrottlingState(ctypes.Structure):
+            _fields_ = [("Version", wintypes.ULONG), ("ControlMask", wintypes.ULONG), ("StateMask", wintypes.ULONG)]
+
+        state = PowerThrottlingState(1, 0x1 | 0x4, 0)   # EXECUTION_SPEED | IGNORE_TIMER_RESOLUTION, both off
+        k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        k32.GetCurrentProcess.restype = wintypes.HANDLE      # pointer-sized handle (64-bit)
+        k32.SetProcessInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+        k32.SetProcessInformation.restype = wintypes.BOOL
+        ok = k32.SetProcessInformation(k32.GetCurrentProcess(), 4, ctypes.byref(state), ctypes.sizeof(state))
+        print(f"power throttling (EcoQoS) disabled for this process: {bool(ok)}", flush=True)
+    except Exception as e:                                  # never let this stop training
+        print(f"could not disable power throttling: {e}", flush=True)
+
+
 def pause_requested() -> bool:
     return PAUSE.exists()
 
@@ -257,6 +282,8 @@ def main():
                                                     "whose sessions end at 12 h); finished runs stay complete")
     args = ap.parse_args()
     torch.set_num_threads(max(1, args.threads))
+    if not args.dry_run:
+        disable_power_throttling()
     global GUARD
     if args.thermal_high is not None and not args.dry_run:
         GUARD = ThermalGuard(args.thermal_high, args.thermal_low, args.thermal_every)

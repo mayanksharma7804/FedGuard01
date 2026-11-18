@@ -81,7 +81,9 @@ rounds 1 and 3 of the E=1 demo - set the frozen F50 settings, re-test 10 rounds,
   Thermal guard = a thread INSIDE each training process (run_experiments --thermal-high 75 --thermal-low 68
   --thermal-every 25, passed by queue_start.ps1; log logs/thermal.log). queue_start launches jobs through WMI, so
   they survive closing the window / ending a Claude session (F51). Never start training from a Claude shell any other way.
-  Turbo is off on AC (max processor state 99%); restore: powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
+  run_experiments opts out of Windows EcoQoS power throttling (else WMI-launched jobs run 3.7x slower, F51).
+  Turbo is off on AC (max processor state 99%): measured no speed gain with turbo on (F51); restore with
+  powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100. Fans on Max (OMEN) while training.
 
 ## Data facts (Phase 2)
 - `python scripts/prepare_data.py` -> data/processed/nf_unsw.npz (+ _manifest.json); `python scripts/make_partitions.py` -> partitions/nf_unsw_alpha{a}_k{K}_seed{s}.npz.
