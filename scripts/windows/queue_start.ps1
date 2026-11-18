@@ -16,7 +16,7 @@
 #   CPU-only laptop: queue_start.ps1 -Only nodp -Threads 4
 param([int]$Jobs = 1, [int]$Threads = 2, [int]$High = 75, [int]$Low = 68, [int]$Every = 25, [int]$Machine = 0,
       [int]$Machines = 1, [ValidateSet('all', 'dp', 'nodp')][string]$Only = 'all',
-      [string]$Name = $env:COMPUTERNAME)
+      [string]$Name = $env:COMPUTERNAME, [string]$ExtraSkip = "")
 $ErrorActionPreference = "Stop"
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $Repo
@@ -35,6 +35,9 @@ if ($running) {
     powercfg /change standby-timeout-ac 0 | Out-Null          # no sleep on AC power while training
     $skip = ""
     if (Test-Path (Join-Path $Repo "results\done_runs.txt")) { $skip = "--skip-file results\done_runs.txt" }
+    # -ExtraSkip <file>: runs another machine is training right now (e.g. a Kaggle session) - skipped here too
+    if ($ExtraSkip -and (Test-Path (Join-Path $Repo $ExtraSkip))) {
+        $skip = if ($skip) { "$skip $ExtraSkip" } else { "--skip-file $ExtraSkip" } }
     if ($Machines -gt 1) { $Jobs = 1 }
     $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
     for ($i = 0; $i -lt $Jobs; $i++) {

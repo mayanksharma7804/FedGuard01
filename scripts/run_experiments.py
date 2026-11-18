@@ -278,8 +278,9 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--threads", type=int, default=int(os.environ.get("FEDGUARD_THREADS", "2")),
                     help="CPU threads for torch per process (training is GPU-bound; fewer threads = cooler CPU)")
-    ap.add_argument("--skip-file", help="text file of run names finished on ANOTHER machine (one per line, as written "
-                                        "by scripts/export_runs.py); they are treated as done")
+    ap.add_argument("--skip-file", nargs="*", default=[],
+                    help="text file(s) of run names finished on - or being trained by - ANOTHER machine (one per line); "
+                         "they are treated as done")
     ap.add_argument("--thermal-high", type=float, help="thermal guard: pause before the next client at this CPU/GPU "
                                                        "temperature (C); off when not given (queue_start.ps1 passes 75)")
     ap.add_argument("--thermal-low", type=float, default=68.0, help="thermal guard: resume at this temperature (C)")
@@ -302,8 +303,9 @@ def main():
         GUARD.start()
     t_start = time.time()
     elsewhere = set()
-    if args.skip_file and Path(args.skip_file).exists():
-        elsewhere = {ln.strip() for ln in open(args.skip_file, encoding="utf-8") if ln.strip() and not ln.startswith("#")}
+    for sf in args.skip_file:
+        if Path(sf).exists():
+            elsewhere |= {ln.strip() for ln in open(sf, encoding="utf-8") if ln.strip() and not ln.startswith("#")}
 
     if args.sweep:
         configs, seen = [], set()
