@@ -57,6 +57,9 @@ Queue = configs/sweeps/QUEUE.txt (FedGuard validation tuning first, then AutoGM 
 - Pause:        scripts\windows\queue_pause.ps1  (after the round)  /  -AfterRun (after the run)
 - Status:       scripts\windows\queue_status.ps1
 To add sweeps: pause, edit QUEUE.txt, start again (finished runs skipped, interrupted runs resume).
+Other machines (docs/FedGuard_Faster_Training_Guide.pdf): -Machine k -Machines N shards; -Only dp|nodp splits by run
+type (a CPU-only laptop takes -Only nodp); results/done_runs.txt (git) is skipped everywhere; import zips with
+scripts/import_runs.py, then export_runs.py --publish-done + push. All machines must print the same queue id.
 Next - FREEZE FedGuard (F50) when all 16 p7_fedguard_tune runs are done (python scripts/make_plots.py --tune):
   1. Pick the row with the highest mean_val_macro_f1 in results/p7_fedguard_tune/selection_val.csv (VALIDATION only;
      the rule was fixed before the results: same protocol as AutoGM's lambda, F39). Look at HRR / attacker share too

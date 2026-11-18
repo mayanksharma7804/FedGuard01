@@ -278,6 +278,9 @@ def main():
                                                        "temperature (C); off when not given (queue_start.ps1 passes 75)")
     ap.add_argument("--thermal-low", type=float, default=68.0, help="thermal guard: resume at this temperature (C)")
     ap.add_argument("--thermal-every", type=float, default=25.0, help="thermal guard: seconds between readings")
+    ap.add_argument("--only", choices=["all", "dp", "nodp"], default="all",
+                    help="take only runs with DP ('dp', for GPU machines) or without DP ('nodp': nearly as fast on a "
+                         "CPU-only laptop, Findings F06). Applied after the queue id and before --shard.")
     ap.add_argument("--max-hours", type=float, help="do not START a new run after this many hours (e.g. 11 on Kaggle, "
                                                     "whose sessions end at 12 h); finished runs stay complete")
     args = ap.parse_args()
@@ -308,8 +311,12 @@ def main():
     queue_id = hashlib.sha256("|".join(run_name(c) for c in configs).encode()).hexdigest()[:8]
     i, n = map(int, args.shard.split("/"))
     total = len(configs)
+    if args.only != "all":
+        want_dp = args.only == "dp"
+        configs = [c for c in configs if (c["dp"].get("epsilon") is not None) == want_dp]
     configs = configs[i::n]
     print(f"queue id {queue_id} ({total} runs in the whole queue) - {len(configs)} run(s) in shard {args.shard}"
+          + (f" (only {args.only} runs)" if args.only != "all" else "")
           + (f", {len(elsewhere)} run names finished elsewhere" if elsewhere else ""), flush=True)
     for cfg in configs:
         name = run_name(cfg)

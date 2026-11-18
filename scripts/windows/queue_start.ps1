@@ -11,8 +11,11 @@
 #   main laptop:     queue_start.ps1 -Machine 0 -Machines 3
 #   helper laptops:  queue_start.ps1 -Machine 1 -Machines 3      and      queue_start.ps1 -Machine 2 -Machines 3
 # Runs listed in results\done_runs.txt (finished on any machine, shared through git) are skipped everywhere.
+# A laptop WITHOUT an NVIDIA GPU takes only the runs without DP (nearly as fast on a CPU, F06), the GPU laptop the rest:
+#   GPU laptop:      queue_start.ps1 -Only dp
+#   CPU-only laptop: queue_start.ps1 -Only nodp -Threads 4
 param([int]$Jobs = 1, [int]$Threads = 2, [int]$High = 75, [int]$Low = 68, [int]$Every = 25, [int]$Machine = 0,
-      [int]$Machines = 1)
+      [int]$Machines = 1, [ValidateSet('all', 'dp', 'nodp')][string]$Only = 'all')
 $ErrorActionPreference = "Stop"
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $Repo
@@ -36,13 +39,13 @@ if ($running) {
     for ($i = 0; $i -lt $Jobs; $i++) {
         $shard = if ($Machines -gt 1) { "$Machine/$Machines" } else { "$i/$Jobs" }
         $pyArgs = "-u scripts\run_experiments.py --sweep $($Sweeps -join ' ') --shard $shard $skip --threads $Threads " +
-                  "--thermal-high $High --thermal-low $Low --thermal-every $Every"
+                  "--thermal-high $High --thermal-low $Low --thermal-every $Every --only $Only"
         $cmd = "cmd.exe /s /c `"set OMP_NUM_THREADS=$Threads&& set MKL_NUM_THREADS=$Threads&& `"$Py`" $pyArgs " +
                "> logs\queue_s$i.log 2> logs\queue_s${i}_err.log`""
         $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
             -Arguments @{ CommandLine = $cmd; CurrentDirectory = $Repo; ProcessStartupInformation = $startup }
         if ($r.ReturnValue -ne 0) { throw "could not start shard $shard (WMI error $($r.ReturnValue))" }
-        Write-Host "Started shard $shard -> logs\queue_s$i.log   (thermal guard: pause at $High C, resume at $Low C, every $Every s)"
+        Write-Host "Started shard $shard (runs: $Only) -> logs\queue_s$i.log   (thermal guard: pause at $High C, resume at $Low C, every $Every s)"
         Write-Host "  Its first line shows the 'queue id': it must be the SAME on every machine."
     }
 }

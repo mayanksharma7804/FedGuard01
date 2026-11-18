@@ -6,6 +6,7 @@
 #   e.g. bash scripts/kaggle/kaggle_run.sh 2 3            # machine 2 of 3, stop starting runs after 10.5 h
 #        bash scripts/kaggle/kaggle_run.sh 2,3 4          # GPU T4 x2: machines 2 and 3 of 4, one per GPU
 #        bash scripts/kaggle/kaggle_run.sh smoke 1        # 2-round smoke test only (do this first)
+#        ONLY=dp bash scripts/kaggle/kaggle_run.sh 1,2 3   # only runs WITH DP (when a CPU-only laptop takes the rest)
 #
 # What it does: Python 3.11.17 in an isolated .venv (uv), the project's pinned packages with the CUDA 12.6
 # build of torch 2.14.1 (same build as the main laptop; the default Linux wheel needs a CUDA 13 driver),
@@ -16,6 +17,7 @@ set -euo pipefail
 MACHINES_IDX="${1:?machine index (or comma list, or 'smoke')}"
 N="${2:?number of machines}"
 HOURS="${3:-10.5}"
+ONLY="${ONLY:-all}"            # all | dp | nodp - must match how the other machines split the queue
 DATA="${4:-}"
 cd "$(dirname "$0")/../.."
 REPO="$(pwd)"
@@ -60,12 +62,12 @@ mapfile -t SWEEPS < <(grep -vE '^\s*(#|$)' configs/sweeps/QUEUE.txt)
 SKIP=(); [[ -f results/done_runs.txt ]] && SKIP=(--skip-file results/done_runs.txt)
 IFS=',' read -ra IDX <<< "$MACHINES_IDX"
 NGPU=$(nvidia-smi -L | wc -l)
-say "Queue share(s) ${IDX[*]} of $N on $NGPU GPU(s); no new run starts after $HOURS h"
+say "Queue share(s) ${IDX[*]} of $N (runs: $ONLY) on $NGPU GPU(s); no new run starts after $HOURS h"
 pids=()
 for k in "${!IDX[@]}"; do
   i="${IDX[$k]}"; gpu=$(( k % NGPU ))
   CUDA_VISIBLE_DEVICES=$gpu "$PY" -u scripts/run_experiments.py --sweep "${SWEEPS[@]}" --shard "$i/$N" \
-      "${SKIP[@]}" --max-hours "$HOURS" > "logs/kaggle_shard$i.log" 2>&1 &
+      "${SKIP[@]}" --only "$ONLY" --max-hours "$HOURS" > "logs/kaggle_shard$i.log" 2>&1 &
   pids+=($!)
   echo "  share $i/$N on GPU $gpu -> logs/kaggle_shard$i.log"
 done
