@@ -60,7 +60,11 @@ if [[ "$MACHINES_IDX" == "smoke" ]]; then
   exit 0
 fi
 
-mapfile -t SWEEPS < <(grep -vE '^\s*(#|$)' configs/sweeps/QUEUE.txt)
+if [[ -n "${SWEEPS_LIST:-}" ]]; then        # a chosen part of the queue, e.g. "configs/sweeps/a.yaml,configs/sweeps/b.yaml"
+  IFS=',' read -ra SWEEPS <<< "$SWEEPS_LIST"
+else
+  mapfile -t SWEEPS < <(grep -vE '^\s*(#|$)' configs/sweeps/QUEUE.txt)
+fi
 SKIP=(); [[ -f results/done_runs.txt ]] && SKIP=(--skip-file results/done_runs.txt)
 IFS=',' read -ra IDX <<< "$MACHINES_IDX"
 NGPU=$(nvidia-smi -L | wc -l)
