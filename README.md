@@ -20,36 +20,55 @@ FedGuard is a federated learning aggregation algorithm designed for network intr
 
 ---
 
-## Key Results (valid runs only - see Findings F46)
+## Key Results (final, 19 Nov 2026)
 
-All numbers are **test** macro-F1 (mean ± std over seeds 42/43/44), best round chosen on validation.
-DP runs: delta = 1/N per client, clipping C = 2, 40-round privacy budget. Every number traces to a row of
-`results/master.csv`.
+Test macro-F1, mean +/- std over seeds 42/43/44 unless stated; best round chosen on validation. DP: delta = 1/N per
+client, clip C = 2, 40-round privacy budget. FedGuard's settings were frozen on the validation split before any
+FedGuard test result was seen (Findings F50). Every number traces to `results/master.csv` (207 runs); figures in
+`results/figures/`, tables in `results/<experiment>/`.
 
-**Ceiling and cost of federation / privacy (K = 5 clients)**
+**1. The privacy-robustness conflict, and FedGuard's answer - mixed privacy (epsilon 1 / 3 / 8 across 10 clients)**
+
+| Aggregator | macro-F1 | Honest clients sidelined (HRR) | Mean weight of an honest client at eps 1 / 3 / 8 |
+|---|---|---|---|
+| FedAvg | 0.190 +/- 0.012 | 0.333 (sample sizes) | 0.087 / 0.125 / 0.116 |
+| AutoGM (tuned) | 0.219 +/- 0.033 | **0.400** | **0.000** / 0.091 / 0.238 |
+| **FedGuard** | 0.214 +/- 0.038 | **0.004** | **0.102 / 0.102 / 0.101** |
+
+AutoGM silences every most-private client in every round; FedGuard gives every honest client its fair share
+(1/K = 0.10) at the same accuracy (F55, `e5_mixed_privacy.png`). Across non-IID levels and privacy settings
+AutoGM sidelines 27-40% of honest clients, FedGuard at most 10% (F56, `e4_conflict.png`).
+
+**2. Attacks (K = 10, alpha 0.5, one shared epsilon of 3, 30% attackers)**
+
+| Aggregator | none | label flip | sign flip | gaussian |
+|---|---|---|---|---|
+| FedAvg, no DP | 0.370 +/- 0.015 | 0.303 +/- 0.019 | 0.264 +/- 0.036 | 0.338 +/- 0.019 |
+| FedAvg | 0.218 +/- 0.006 | 0.173 +/- 0.036 | 0.163 +/- 0.015 | 0.145 +/- 0.012 |
+| AutoGM | 0.210 +/- 0.022 | 0.123 +/- 0.039 | 0.152 +/- 0.002 | 0.206 +/- 0.009 |
+| FedGuard | 0.203 +/- 0.013 | 0.126 +/- 0.041 | 0.150 +/- 0.001 | 0.212 +/- 0.005 |
+
+FedGuard and AutoGM are tied (paired per-seed differences -0.018 to +0.011). Both remove gaussian attackers
+(weight 0); against sign flip and label flip neither keeps attackers below their share, because under DP noise
+of length ~13 the attack's extra displacement (~1-1.5) is invisible to any distance-based rule (F39, F54).
+
+**3. Where FedGuard does not win (reported, not hidden)**
+- Mixed privacy **with** 30% sign-flip attackers: FedGuard 0.118, AutoGM 0.113, FedAvg **0.153** - both robust
+  aggregators collapse in one of three seeds (F55).
+- 40% attackers break every method (macro-F1 0.080, only Benign predicted); FedGuard helps against attackers mainly
+  when the noise is small (epsilon 8: 0.170 vs AutoGM 0.110) (F58).
+
+**4. Baselines (K = 5)**
 
 | Setting | macro-F1 | Finding |
 |---|---|---|
-| B0 centralised | 0.597 ± 0.004 | F22 |
-| B1 FedAvg, alpha = 100 / 0.5 / 0.1 | 0.603 / 0.537 / 0.435 | F29 |
-| B2 DP-FedAvg alpha 0.5, eps = inf / 8 / 3 / 1 (40 rounds) | 0.513 / 0.253 / 0.219 / 0.183 | F38 |
+| Centralised (B0) | 0.597 +/- 0.004 | F22 |
+| FedAvg alpha 100 / 0.5 / 0.1 (B1) | 0.603 / 0.537 / 0.435 | F29 |
+| DP-FedAvg alpha 0.5, eps inf / 8 / 3 / 1 (B2) | 0.513 / 0.253 / 0.219 / 0.183 | F38 |
+| Declared noise radius vs measured (E0) | measured / predicted = 1.000-1.005 | F35 |
 
-**Attacks (K = 10, alpha 0.5, 30% attackers, 40 rounds)**
-
-| Aggregator | Privacy | none | label flip | sign flip | gaussian |
-|---|---|---|---|---|---|
-| FedAvg | no DP | 0.370 ± 0.015 | 0.303 ± 0.019 | 0.264 ± 0.036 | 0.338 ± 0.019 |
-| FedAvg | eps 3 | 0.218 ± 0.006 | 0.173 ± 0.036 | 0.163 ± 0.015 | 0.145 ± 0.012 |
-| AutoGM (lam_scale 4, tuned, F39) | eps 3 | 0.210 ± 0.022 | *running* | *running* | *running* |
-| FedGuard | eps 3 | *tuning on validation (F48)* | | | |
-
-**Mixed privacy (eps 1 / 3 / 8 across clients) - the paper's core scenario:** AutoGM gives weight **0**
-to every eps-1 (most private) client in every round (HRR 0.40); FedGuard keeps them (F47). The 3-seed,
-40-round comparison is running.
-
-Status (17 Nov 2026): the 20-round runs of 21-31 Oct were stopped during the DP warm-up and are
-superseded (F46); the affected experiments are being re-run. FedGuard's settings are chosen on the
-validation split before any FedGuard test result is looked at.
+Training ran on the team laptops and on Kaggle T4 GPUs (the `machine` column of `master.csv`); the same run on two
+T4s is bit-identical, and on a T4 vs the laptop's RTX 3050 it differs by 0.0034 macro-F1 (F53).
 
 ---
 
@@ -80,7 +99,7 @@ The setup script installs uv, creates `.venv` with Python 3.11, installs the exa
 | `tests/` | pytest unit tests |
 | `results/` | `runs/` (not committed), `master.csv`, `figures/` |
 | `docs/phase_notes/` | P1–P8 phase notes |
-| `Findings.md` | all findings F01-F48 (bugs, decisions, measurements, results) |
+| `Findings.md` | all findings F01-F58 (bugs, decisions, measurements, results) |
 
 ---
 

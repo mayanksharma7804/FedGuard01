@@ -41,7 +41,8 @@ class Source:
             k = len(test["client_sizes"])
             eps = test.get("epsilon_target_per_client") or [None] * k
             att = set(test.get("attackers") or [])
-            title = f"{cfg['fl']['aggregator']['name']}  attack={cfg['attack']['type']}  (engine run {self.folder.name})"
+            title = (f"{cfg['fl']['aggregator']['name']}  attack={cfg['attack']['type']}\n"
+                     f"(run {self.folder.name})")
             return [{"client": c, "n": test["client_sizes"][c], "epsilon": eps[c], "attacker": c in att}
                     for c in range(k)], title
         info_path = self.folder / "clients.json"
@@ -123,7 +124,7 @@ def main():
     fig = plt.figure(figsize=(13, 6.5))
     gs = fig.add_gridspec(2, 2, width_ratios=[1.6, 1])
     axes = (fig.add_subplot(gs[:, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[1, 1]))
-    fig.suptitle("FedGuard - who does the server trust?  (dotted: fair share 1/K, dashed: rejection threshold 0.5/K)",
+    fig.suptitle("Who does the server trust?  (dotted: fair share 1/K, dashed: rejection threshold 0.5/K)",
                  fontsize=11)
     if args.save:
         draw(src, axes)
