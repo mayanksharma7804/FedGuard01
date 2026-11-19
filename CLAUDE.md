@@ -49,18 +49,15 @@ Control API is HTTP on 127.0.0.1:8000 (not 9093); SuperLink/SuperNode need .venv
 (they spawn flower-superexec); custom strategy = subclass serverapp.strategy.FedAvg and override
 aggregate_train(server_round, replies).
 
-## Current phase (18 Nov 2026, 19:40)
-Phases 1-5 DONE; FedGuard FROZEN on validation (F50, configs/fedguard_frozen.yaml); main experiments queued
-(QUEUE.txt, queue id fd9b7f16, 144 runs, 100 to do at the freeze). Superseded 20-round runs: never use (F46).
-WHO TRAINS WHAT (results/reserved/*.txt, tracked): kaggle-1 = its 18 E4 runs (session 1 ends ~21:00, session 2 for
-leftovers); kaggle-2..kaggle-6 = the other 82 (tag kaggle-session-3, MACHINES 10, shares 0,1 / 2,3 / 4,5 / 6,7 / 8,9).
-The MAIN LAPTOP IS PAUSED (results/runs/PAUSE exists) - it does imports, plots and writing, no training.
-When a Kaggle zip arrives: copy to results/exports/, import_runs.py --check then import, collect_results,
-export_runs.py --publish-done, commit "Import kaggle-N results", push. Then make_plots.py and fill report 6.6-6.9.
-Pending: cross-machine check (one run on two GPUs, Findings), P6-P8 notes rewrite, README results, deck.
-- Start/resume local training (only if needed): scripts\windows\queue_start.ps1 (detached, built-in thermal guard)
-- Pause / status: scripts\windows\queue_pause.ps1 / queue_status.ps1
-Other machines: docs/FedGuard_Faster_Training_Guide.pdf; all print the same queue id.
+## Current phase (19 Nov 2026)
+ALL TRAINING DONE: queue fd9b7f16, 144/144 runs (check: run_experiments --sweep <QUEUE> --dry-run -> 0 todo);
+master.csv 207 runs (machine column: laptops 'Friday'/'Harshit', Kaggle 'kaggle-1'..'kaggle-6'; cross-machine F53).
+FedGuard frozen on validation (F50). Superseded 20-round runs: never use (F46). The main laptop does NOT train.
+Now: make_plots.py (all groups) -> results/<group>/ + figures; write report 6.6-6.9 (docs/report/06_results.md),
+rewrite P6-P8 notes, README results table, slide deck (docs/presentation_outline.md), final checks (pytest,
+every number traced to master.csv), final commit. Demo works (F52).
+- If local training is ever needed again: scripts\windows\queue_start.ps1 (detached, built-in thermal guard).
+Other machines / Kaggle: docs/FedGuard_Faster_Training_Guide.pdf.
 
 ## Training facts (Phase 3)
 - Fixed for ALL baselines and clients: plain SGD lr 0.2, batch 256, no class weights (chosen on validation, F19).
