@@ -1,8 +1,6 @@
 # Chapter 6 - Results and discussion
 
-> DRAFT (18 Nov 2026). Sections 6.1-6.5 are final: they rest on completed experiments (Findings F07-F39 and the
-> 40-round K = 10 FedAvg runs). Sections 6.6-6.9 (FedGuard) are filled in when the validation choice (F50) and
-> the FedGuard experiments are finished **[pending]**. All numbers are test-split values, mean +/- standard
+> DRAFT (19 Nov 2026) - all experiments finished (144 / 144 queue runs, Findings F07-F58). All numbers are test-split values, mean +/- standard
 > deviation over seeds 42, 43, 44, unless stated otherwise; each traces to `results/master.csv` or to the
 > summary tables named in the text.
 
@@ -91,10 +89,10 @@ honest-looking sigma), 40-round budget, test macro-F1:
 |---|---|---|---|---|---|
 | FedAvg | no DP | 0.370 +/- 0.015 | 0.303 +/- 0.019 | 0.264 +/- 0.036 | 0.338 +/- 0.019 |
 | FedAvg | eps 3 | 0.218 +/- 0.006 | 0.173 +/- 0.036 | 0.163 +/- 0.015 | 0.145 +/- 0.012 |
-| AutoGM (lam_scale 4) | eps 3 | 0.210 +/- 0.022 | **[pending: 2 of 3 seeds done]** | **[pending]** | **[pending]** |
-| FedGuard | eps 3 | **[pending]** | | | |
+| AutoGM (lam_scale 4) | eps 3 | 0.210 +/- 0.022 | 0.123 +/- 0.039 | 0.152 +/- 0.002 | 0.206 +/- 0.009 |
+| FedGuard (frozen, F50) | eps 3 | 0.203 +/- 0.013 | 0.126 +/- 0.041 | 0.150 +/- 0.001 | 0.212 +/- 0.005 |
 
-(`results/e5_attacks/summary.csv`, figure `e5_attacks.png` when complete.) Without DP every attack costs FedAvg
+(`results/e5_attacks/summary.csv`, figure `e5_attacks.png`; discussed in 6.7.) Without DP every attack costs FedAvg
 0.03-0.11 macro-F1; with DP the model is already weak and gaussian attackers hurt most (0.218 -> 0.145).
 
 **AutoGM has no good setting under DP (F39).** Tuned on the validation split (epsilon 3, alpha 0.5, seed 42):
@@ -116,30 +114,98 @@ while FedAvg gives them 0.21 (their share of the data).
 
 **Under mixed privacy the most private clients are silenced (F47).** With epsilon 1, 3 and 8 assigned in turn to
 the ten clients, AutoGM gave each of the four epsilon-1 clients weight 0 in every round, and the epsilon-8 clients
-0.23-0.24 each - the hospital-and-bank story of the paper's introduction **[to be confirmed on the 40-round
-mixed-privacy runs; figure `e5_mixed_privacy.png`]**.
+0.23-0.24 each - the hospital-and-bank story of the paper's introduction; confirmed on the 40-round runs with three
+seeds in 6.7.
 
-## 6.6 Choosing FedGuard's settings on validation **[pending - F50]**
+## 6.6 Choosing FedGuard's settings on validation (O3)
 
-Table: the 8 variants of `configs/sweeps/p7_fedguard_tune.yaml` (mode, R4, s floor, lambda_scale) with mean
-validation macro-F1 over no attack and 30% sign flip, HRR and attacker share
-(`results/p7_fedguard_tune/selection_val.csv`); the chosen setting and why.
+FedGuard's options were chosen exactly like AutoGM's lambda: on the **validation** split, seed 42, epsilon 3,
+alpha 0.5, by the mean validation macro-F1 over no attack and 30% sign flip - a rule fixed before any result was
+seen (F50; `results/p7_fedguard_tune/selection_val.csv`).
 
-## 6.7 Main comparison: FedGuard vs AutoGM vs FedAvg **[pending - E5, E5m]**
+| Setting (one change at a time) | Mean val macro-F1 | Honest rejection, no attack | Attackers' weight, sign flip |
+|---|---|---|---|
+| **quadrature + R4 + s floor, lambda_scale 4 (chosen)** | **0.1780** | **0.005** | 0.289 |
+| linear, lambda_scale 1 (the paper's linear rule) | 0.1779 | 0.200 | 0.261 |
+| linear + R4 + s floor, lambda_scale 4 | 0.1752 | 0.005 | 0.278 |
+| quadrature, lambda_scale 1 (the guide's default) | 0.1742 | 0.115 | 0.287 |
+| quadrature + R4, lambda_scale 1 | 0.1697 | 0.020 | 0.271 |
+| (three more variants) | 0.1676-0.1749 | 0.005-0.020 | 0.266-0.283 |
 
-- Main attack table with paired per-seed FedGuard - AutoGM differences (`results/e5_attacks/paired_fedguard_vs_autogm.csv`).
-- Mixed privacy: macro-F1, HRR, attacker share, and mean weight of an honest client per privacy level
-  (`results/e5_mixed_privacy/`).
-- Trust weights of one real run over the rounds (`scripts/demo_dashboard.py --run ... --save`).
+The choice rests on a near-tie in macro-F1 (0.1780 vs 0.1779) and a large difference in fairness: without the s
+floor (F48) FedGuard sidelines 11.5-20% of honest clients on clean data, with it 0.5%. These settings were frozen
+(`configs/fedguard_frozen.yaml`) for every result below and for the live demo.
 
-## 6.8 Honest rejection across privacy and heterogeneity **[pending - E4]**
+## 6.7 Main comparison: FedGuard vs AutoGM vs FedAvg (O3, O4)
 
-HRR and macro-F1 heatmaps, epsilon {inf, 3, 1, mixed} x alpha {0.1, 0.5, 100}, AutoGM vs FedGuard (`e4_conflict.png`).
+**One shared epsilon of 3 (E5, table in 6.5).** FedGuard and AutoGM are statistically tied on every attack: the
+paired per-seed differences (same partition, seed and attackers) are -0.018 to +0.011 macro-F1
+(`results/e5_attacks/paired_fedguard_vs_autogm.csv`). Both give gaussian attackers weight 0 and recover from that
+attack (0.21 vs 0.145 for FedAvg). Against sign and label flip both give the attackers ~0.30-0.32 of the weight and
+neither beats FedAvg - the attack's extra displacement (~1-1.5) is buried in DP noise of length ~13, as F39 predicted.
+With one shared epsilon every client declares about the same noise (F36), so FedGuard has nothing extra to work with:
+here it is a safe drop-in for AutoGM, not an improvement (F54).
 
-## 6.9 What each refinement contributes and where FedGuard breaks **[pending - E6, E7]**
+**Mixed privacy - the paper's scenario (E5m, F55).** Epsilon 1, 3 and 8 assigned in turn to the ten clients:
 
-One-change-at-a-time ablation (`e6_ablation.png`) and the stress tests over attacker share and epsilon
-(`e7_stress.png`); state the breaking points and every case where FedGuard did not beat AutoGM.
+| Aggregator | macro-F1 (no attack) | Honest rejection | Weight of an honest client at eps 1 / 3 / 8 | macro-F1 (30% sign flip) | Attackers' weight |
+|---|---|---|---|---|---|
+| FedAvg | 0.190 +/- 0.012 | 0.333 | 0.087 / 0.125 / 0.116 | **0.153 +/- 0.002** | 0.208 |
+| AutoGM | 0.219 +/- 0.033 | **0.400** | **0.000** / 0.091 / 0.238 | 0.113 +/- 0.037 | 0.395 |
+| **FedGuard** | 0.214 +/- 0.038 | **0.004** | **0.102 / 0.102 / 0.101** | 0.118 +/- 0.033 | 0.276 |
+
+(`results/e5_mixed_privacy/`, figures `e5_mixed_privacy.png`, `weights_mixed_privacy_autogm.png`,
+`weights_mixed_privacy_fedguard.png`.)
+
+- **This is the central result.** AutoGM gives every epsilon-1 client weight 0 in every round of every seed and
+  over-trusts the low-noise epsilon-8 clients (0.24 each): the most privacy-careful organisations are silenced. FedGuard
+  gives every honest client almost exactly the fair share 1/K = 0.10, whatever its privacy level, with the same
+  macro-F1 (0.214 vs 0.219; per seed 0.201 / 0.256 / 0.183 vs 0.217 / 0.253 / 0.186). Objectives O2 and O3 are met.
+- **Where it stops:** with 30% sign-flip attackers under mixed privacy both robust aggregators do worse than plain
+  FedAvg (0.118, 0.113 vs 0.153). Most of the gap is one seed (44), in which both collapse to predicting only Benign;
+  in the other two seeds FedGuard scores 0.138 / 0.136 against FedAvg's 0.154 / 0.153 and AutoGM's 0.105 / 0.153.
+  FedGuard gives the attackers less weight than AutoGM (0.28 vs 0.39) but more than FedAvg's data share (0.21).
+
+## 6.8 Honest rejection across privacy and heterogeneity (O2, E4)
+
+| Honest rejection (AutoGM / FedGuard) | no DP | eps 3 | eps 1 | mixed 1-3-8 |
+|---|---|---|---|---|
+| alpha 0.1 | 0.36 / 0.05 | 0.10 / 0.00 | 0.09 / 0.00 | 0.40 / 0.01 |
+| alpha 0.5 | 0.36 / 0.06 | 0.00 / 0.00 | 0.00 / 0.00 | 0.40 / 0.01 |
+| alpha 100 | 0.27 / 0.10 | 0.00 / 0.00 | 0.00 / 0.00 | 0.40 / 0.00 |
+
+(no attackers, seeds 42 and 43; `results/e4_conflict/`, figure `e4_conflict.png`; F56.)
+
+The conflict the paper describes is real on IDS data, and it has two sources: **unequal noise** (mixed privacy:
+AutoGM 0.40 at every alpha) and **non-IID spread** (no DP: AutoGM 0.27-0.36; at alpha 0.1 its model collapses to
+macro-F1 0.099 while FedGuard reaches 0.209). With one shared epsilon all clients carry the same noise and AutoGM
+rejects almost nobody. FedGuard keeps honest rejection at or below 0.10 in all 12 cells. Macro-F1 of the two is within
++/- 0.02 in the DP cells, except mixed privacy at alpha 100, where AutoGM is better (0.263 vs 0.223). Two seeds per
+cell: these are trends.
+
+## 6.9 What each refinement contributes and where FedGuard breaks (E6, E7)
+
+**Ablation, one change at a time from the frozen settings (3 seeds, F57; `e6_ablation.png`).** No single refinement
+moves macro-F1 beyond the seed spread (0.196-0.203 without attack, 0.144-0.150 with sign flip). Removing R4 raises
+honest rejection to 0.033, removing the s floor to 0.013-0.032; without R1 (the centre-noise correction) every
+residual is zero and FedGuard degenerates to equal weights (attackers get exactly their 0.30). At a shared epsilon
+the refinements buy fairness, not accuracy.
+
+**Stress tests (seed 42, F58; `e7_stress.png`).** Attackers' weight at 10 / 20 / 30 / 40% sign flip: AutoGM
+0.115 / 0.232 / 0.325 / 0.406, FedGuard 0.095 / 0.174 / 0.289 / 0.364 - lower at every share. At 40% attackers every
+method breaks (macro-F1 0.080, only Benign predicted). FedGuard's advantage against attackers grows as the noise
+shrinks: at epsilon 8 with 30% sign flip it reaches 0.170 (attackers 0.248) against AutoGM's 0.110 (0.313); at
+epsilon 1 all methods are at ~0.13. **Breaking points:** 40% attackers, and epsilon <= 3 for seeing a sign-flip attack.
+
+**Summary of the evidence against the paper's objectives.**
+
+| Objective | Answer |
+|---|---|
+| O1 baselines | Federation costs nothing with IID data; non-IID costs up to 0.16 macro-F1, mostly rare classes (6.2) |
+| O2 the conflict | Measured for the first time on IDS data: AutoGM sidelines 27-40% of honest clients under non-IID or mixed privacy (6.8) |
+| O3 the noise-aware aggregator | The radius is predictable to ~1% (6.4); FedGuard gives every honest client its fair share at equal accuracy (6.7) |
+| O4 robustness under DP + non-IID + attacks | Gaussian attacks stopped; sign / label flip not stopped by any distance-based rule under DP at epsilon <= 3; FedGuard limits attackers more than AutoGM, most at epsilon 8 (6.7, 6.9) |
+| O5 honest reporting | Leakage-controlled data, macro-F1 + per-class recall + FPR + HRR, every negative result reported, invalid runs replaced (F46) |
 
 ## 6.10 Engineering results worth reporting
 

@@ -12,7 +12,7 @@ college requires (plan decision D7).
 | 3 | Problem statement and objectives | paper sections 4-6 with the corrections in `03_paper_updates.md` (radius formula, R1-R4 + s floor, K, evaluation plan, D1-D7) | corrections drafted |
 | 4 | Methodology | `04_methodology.md` | draft done |
 | 5 | Experimental setup | `05_experimental_setup.md` | draft done; status column to finalise |
-| 6 | Results and discussion | `06_results.md` (from Findings, `results/figures/`, `results/*/summary.csv`) | 6.1-6.5 and 6.10 drafted; FedGuard sections 6.6-6.9 pending |
+| 6 | Results and discussion | `06_results.md` | complete draft (all experiments) |
 | 7 | Limitations and future work | `07_limitations.md` + paper section 7 | draft done; breaking points pending |
 | App. | Reproducibility | README (setup, queue, plots), configs, GitHub link, `docs/demo.md` | - |
 
