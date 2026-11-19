@@ -42,7 +42,7 @@ The paper says it "presents no implementation". Replacement:
 - O1: "three or more simulated organisational clients" -> 5 and 10 clients.
 - O4: "at varying compromise ratios" -> 30% in the main table, 10-40% in the stress test (one seed, F40).
   The target "robustness comparable to AutoGM without DP at accuracy comparable to DP-FL" is answered directly
-  in Chapter 6 **[pending]**.
+  in Chapter 6: gaussian attacks are stopped with DP on; sign / label flip are not stopped by any distance-based rule at epsilon <= 3 (F54, F58), and FedGuard keeps honest private clients that AutoGM silences (F55).
 
 ## Section 6.4 (evaluation plan) - replace
 

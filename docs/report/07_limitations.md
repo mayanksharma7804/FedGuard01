@@ -1,7 +1,6 @@
 # Chapter 7 - Limitations and future work
 
-> DRAFT (18 Nov 2026). The breaking points (E7) and the final FedGuard-vs-AutoGM verdict are added when the
-> experiments finish **[pending]**.
+> DRAFT (19 Nov 2026), final results included.
 
 ## 7.1 Limitations
 
@@ -35,10 +34,18 @@ modelled: all clients take part in every round.
 
 **Hyper-parameters chosen on one setting.** AutoGM's lambda and FedGuard's settings were chosen on the
 validation split at alpha 0.5, epsilon 3, seed 42 (F39, F50) and then frozen. Other settings (alpha 0.1, mixed
-privacy) might favour other choices; E6 shows how sensitive each choice is **[pending]**.
+privacy) might favour other choices; E6 shows that, at one shared epsilon, no single option changes macro-F1 beyond the seed spread (F57).
 
 **Rare-class scores are noisy.** Some classes have 4-27 validation and 10-68 test rows (F12), so their
 per-class recall moves in large steps.
+
+**Attacks under DP are not stopped by distance.** At epsilon <= 3, sign-flip and label-flip attackers keep ~30% of the
+weight under both FedGuard and AutoGM (F54); under mixed privacy with 30% sign flip both robust aggregators score below
+plain FedAvg (0.118 / 0.113 vs 0.153, F55), and at 40% attackers every method breaks (F58). FedGuard's contribution is
+fairness to honest private clients, not stronger attack detection inside heavy noise.
+
+**Measured on two GPU types.** Runs were trained on the team laptops and on Kaggle T4 GPUs; identical on the same GPU
+type, they differ by ~0.003 macro-F1 across types (F53), so differences below ~0.005 between methods are not claimed.
 
 ## 7.2 Future work
 

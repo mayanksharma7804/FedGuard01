@@ -4,7 +4,7 @@ Every finding of the project, in the order we found it: **what we did, what we f
 and what we decided**. This file feeds the report (Methodology, Results, Limitations) and the viva.
 It is updated after every phase.
 
-**Status (17 Nov 2026):** Phases 1-5 complete. Phase 6 partly valid (40-round runs); the 20-round Phase 6-9 runs of 21-31 Oct are superseded (F46) and are being re-run with the documented 40-round budget, after FedGuard is tuned on validation (F48). F42-F45 are kept for the record but their numbers and several conclusions are withdrawn (F46, F47).
+**Status (19 Nov 2026):** all experiments complete (144 / 144 queue runs; results F50-F58). The 20-round runs of 21-31 Oct are superseded (F46); F42-F45 are kept only as a record.
 
 | ID | Phase | Finding (one line) | Type |
 |---|---|---|---|

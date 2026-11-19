@@ -1,7 +1,6 @@
 # Chapter 5 - Experimental setup
 
-> DRAFT (17 Nov 2026). The status column is updated as runs finish; the final version keeps only the
-> experiments that were completed and states every deviation from the plan.
+> DRAFT (19 Nov 2026) - all experiments completed (144 / 144 queue runs).
 
 ## 5.1 Hardware and software
 
@@ -10,7 +9,7 @@
 | Machine | one Windows 11 laptop: Intel Core i5-12450H (8 cores), 16 GB RAM, NVIDIA RTX 3050 Laptop GPU 4 GB |
 | Software | Python 3.11.17, PyTorch 2.14.1 (CUDA 12.6 build), Opacus 1.6.0, Flower 1.39.0, NumPy 2.4, scikit-learn 1.9 - exact versions in `requirements.txt` (cross-platform lock file) |
 | Platform | native Windows (no WSL, no Docker): our own deterministic engine for experiments, Flower deployment mode (no Ray) for the parity check and the demo |
-| Run time | K = 10, DP, 40 rounds: ~30 min per run with one job on the GPU (37 s per round plus thermal pauses, F49); non-DP rounds are ~2.5x faster |
+| Run time | K = 10, DP, 40 rounds: ~30 min per run on the laptop (37 s per round plus thermal pauses, F49) or ~25 min on a Kaggle T4; the campaign used the team laptop plus six Kaggle accounts (F53) |
 
 Thermal limits shaped the schedule: two parallel jobs heated the CPU to 95 C, while one job with turbo boost off
 gives the same throughput; a thermal guard pauses training (never changing results) whenever the CPU or GPU
@@ -42,12 +41,12 @@ since then every round is checkpointed and a stall detector watches the logs.
 | E2 | B1 FedAvg, K = 5 | alpha {0.1, 0.5, 100} x 3 seeds | 9 | done (F29) |
 | E3 | B2 DP-FedAvg, K = 5, alpha 0.5 | epsilon {inf, 8, 3, 1} x 3 seeds | 12 | done (F38) |
 | - | AutoGM lambda (validation) | lambda_scale {0.5, 1, 2, 4, 8} x {none, sign flip} | 10 | done (F39) |
-| - | FedGuard settings (validation) | 8 variants x {none, sign flip} | 16 | running |
-| E4 | O2 conflict (honest clients only) | {AutoGM, FedGuard} x epsilon {inf, 3, 1, mixed} x alpha {0.1, 0.5, 100} x 2 seeds | 48 | AutoGM queued, FedGuard after freeze |
-| E5 | main attack table, K = 10, alpha 0.5, epsilon 3 | {FedAvg no DP, FedAvg, AutoGM, FedGuard} x {none, label flip, sign flip, gaussian} x 3 seeds (+ AutoGM no DP, seed 42 = B3) | 52 | FedAvg done; AutoGM 8/12 done; FedGuard after freeze |
-| E5m | mixed privacy (epsilon 1/3/8 across clients) | {FedAvg, AutoGM, FedGuard} x {none, sign flip} x 3 seeds | 18 | baselines queued, FedGuard after freeze |
-| E6 | FedGuard ablation (one change at a time) | mode, R4, s floor, lambda_scale; 3 seeds at the selected setting's neighbours | ~24 | after freeze |
-| E7 | stress | attacker share {10, 20, 40%} (sign flip) and epsilon {8, 1}, FedGuard vs AutoGM | ~16 | after freeze |
+| - | FedGuard settings (validation) | 8 variants x {none, sign flip} | 16 | done (F50) |
+| E4 | O2 conflict (honest clients only) | {AutoGM, FedGuard} x epsilon {inf, 3, 1, mixed} x alpha {0.1, 0.5, 100} x 2 seeds | 48 | done (F56) |
+| E5 | main attack table, K = 10, alpha 0.5, epsilon 3 | {FedAvg no DP, FedAvg, AutoGM, FedGuard} x {none, label flip, sign flip, gaussian} x 3 seeds (+ AutoGM no DP, seed 42 = B3) | 52 | done (F54) |
+| E5m | mixed privacy (epsilon 1/3/8 across clients) | {FedAvg, AutoGM, FedGuard} x {none, sign flip} x 3 seeds | 18 | done (F55) |
+| E6 | FedGuard ablation (one change at a time) | mode, R4, s floor, lambda_scale; 3 seeds at the selected setting's neighbours | ~24 | done, 30 runs (F57) |
+| E7 | stress | attacker share {10, 20, 40%} (sign flip) and epsilon {8, 1}, FedGuard vs AutoGM | ~16 | done (F58) |
 | E8 | second dataset (CICIoT2023) | - | - | dropped (time), future work |
 
 ## 5.4 Deviations from the implementation plan (to be explained in the report)

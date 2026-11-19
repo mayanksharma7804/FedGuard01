@@ -1,7 +1,6 @@
 # Presentation outline (12-15 slides, plan 13.5)
 
-> DRAFT (18 Nov 2026). Content, figure and speaker notes per slide; the deck is built from this when the
-> FedGuard results are in. **[pending]** = waits for F50 / E5 / E5m / E4 / E6 / E7. Keep each slide to one idea,
+> DRAFT (19 Nov 2026), final results included (F50-F58). Keep each slide to one idea,
 > one figure, at most ~25 words of text. Talk time ~12 minutes + demo 5 minutes.
 
 | # | Title | On the slide | Figure / visual | Speaker notes (who says what) |
@@ -16,9 +15,9 @@
 | 8 | Data without leakage | 2.39M flows -> 95.5% duplicates -> 104,022 unique; identifiers dropped (IPs, ports, DNS_QUERY_ID) | `eda_duplicates.png` | Why our scores are lower than published 91-93% - and honest (F07-F13). A test caught a float32 leak (F11). |
 | 9 | Can the server predict the noise? | measured / predicted = 1.000-1.005 over 150 pairs; noise orthogonal to signal | `e0_calibration.png` | E0 also caught a 5-20% error in our first formula - Opacus' real batch size (F34). Foundation of the method. |
 | 10 | Baselines and the cost of privacy | centralised 0.597; FedAvg 0.603 / 0.537 / 0.435 (alpha 100 / 0.5 / 0.1); DP eps 8 / 3 / 1: 0.25 / 0.22 / 0.18 | `b1_fedavg_by_alpha.png` + `b2_dpfedavg_by_epsilon.png` | Federation costs nothing with IID data; non-IID loses rare classes; DP roughly halves macro-F1 - rare attacks vanish (F38). |
-| 11 | Who gets silenced? (O2) | AutoGM rejects the most private clients; FedGuard keeps them | `e5_mixed_privacy.png` (weight by epsilon) + `e4_conflict.png` **[pending]** | Under mixed privacy AutoGM gave every eps-1 client weight 0 (F47). FedGuard HRR **[pending]**. |
-| 12 | Main attack table (O4) | macro-F1 / attackers' weight, FedAvg vs AutoGM vs FedGuard, 3 attacks, 3 seeds, paired differences | `e5_attacks.png` **[pending]** | Read the paired column; say clearly where FedGuard does NOT win (label flip is invisible to every distance-based method). |
-| 13 | What matters and where it breaks | ablation + attacker share 10-40% + epsilon 8/1 | `e6_ablation.png`, `e7_stress.png` **[pending]** | Each refinement's contribution; breaking point; s floor and R4 trade-off. |
+| 11 | Who gets silenced? (O2, O3) | AutoGM: every eps-1 client weight 0 (HRR 0.40). FedGuard: every honest client 0.10 (HRR 0.004), same macro-F1 | `weights_mixed_privacy_autogm.png` vs `_fedguard.png`, `e5_mixed_privacy.png` | The paper's hospital story, measured over 3 seeds (F55). Across non-IID levels AutoGM sidelines 27-40%, FedGuard <= 10% (F56, `e4_conflict.png`). |
+| 12 | Main attack table (O4) | Shared eps 3: FedGuard = AutoGM on every attack; gaussian stopped, sign / label flip not | `e5_attacks.png` | Paired differences -0.018..+0.011 (F54). Say why: the attack is buried in DP noise of length ~13 (F39). With mixed privacy + sign flip both robust aggregators fall below FedAvg (F55). |
+| 13 | What matters and where it breaks | Refinements buy fairness, not accuracy; FedGuard limits attackers more than AutoGM; all break at 40% | `e6_ablation.png`, `e7_stress.png` | No R4 / no s floor: more honest clients sidelined (F57). Eps 8 + sign flip: FedGuard 0.170 vs AutoGM 0.110 (F58). |
 | 14 | Live demo | 5 organisations on Flower; attacker red, eps-1 hospital blue; AutoGM then FedGuard | dashboard (`docs/demo.md`) | Fallback: replay `scripts/demo_dashboard.py --dir results/demo_fedguard`, or the recorded video. |
 | 15 | Limitations and future work | honest declarations assumed; DP utility with small clients; one dataset; next: verify declared noise, client-level DP, CICIoT2023 | bullet list | Be the first to say the weaknesses (Chapter 7). Thank you + questions. |
 

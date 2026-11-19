@@ -1,8 +1,7 @@
 # Viva pack - questions and model answers
 
-> DRAFT (18 Nov 2026). Every member should be able to give each answer in their own words in about a minute
-> (plan 13.6 and Appendix E). Numbers cite Findings.md (Fxx). Places marked **[pending]** are filled in when
-> the FedGuard experiments (E5, mixed privacy, E4, E6, E7) finish.
+> DRAFT (19 Nov 2026). Every member should be able to give each answer in their own words in about a minute
+> (plan 13.6 and Appendix E). Numbers cite Findings.md (Fxx). Updated 19 Nov with the final results (F50-F58).
 
 ## The idea
 
@@ -57,7 +56,7 @@ R2: quadrature residual. R3: allowance s = median + 2 x MAD of the residuals (ro
 natural wobble of the noise length (std ~ r/sqrt(2d)), which otherwise gets a very private client rejected when
 the others are quiet (F02, F31). s floor: under DP most residuals are hidden by noise, so median = MAD = 0 and s
 collapses, making the trust step a cliff (F48). Which of these to use was decided on the validation split (F50)
-and each is ablated (E6) **[pending]**.
+and each is ablated (E6, F57): none changes macro-F1 beyond the seed spread; the s floor and R4 lower honest rejection; without R1 FedGuard degenerates to equal weights.
 
 **9. What is R4 and why is it a trade-off?**
 It widens tolerance by z standard deviations of the noise length. That saves honest private clients, but an
@@ -112,8 +111,7 @@ declare honest-looking noise.
 **18. Which attack was hardest, and where does FedGuard fail?**
 Label flip is invisible to every distance-based method: the attacker trains normally on flipped labels, so its
 DP-noisy update is as far from the centre as an honest one. Sign flip under DP is hard because its extra
-displacement (~2 x signal, length ~1-1.5) is small next to the noise radius (~13) (F39). **[pending: E5 / E7
-breaking points]**
+displacement (~2 x signal, length ~1-1.5) is small next to the noise radius (~13) (F39). Result: at one shared epsilon of 3 FedGuard and AutoGM are tied and both give sign / label-flip attackers ~0.30 of the weight (F54); FedGuard limits attackers more than AutoGM at every attacker share and helps most at epsilon 8 (0.170 vs 0.110), and every method breaks at 40% attackers (F58). Under mixed privacy with sign flip both robust aggregators fall below FedAvg (F55).
 
 **19. What went wrong during the project, and what did you learn?**
 Three lessons, each logged: an independent cross-check (Flower) found a bug that plausible learning curves hid
@@ -124,3 +122,25 @@ re-ran (F46). Always check learning curves and cross-check against an independen
 **20. What would you do with more time?**
 Second dataset (CICIoT2023, plan E8); client-level DP or larger clients to raise utility; verifying declared
 noise (too_clean); adaptive attackers who know FedGuard's rule; secure aggregation.
+
+## The results in one minute (added 19 Nov)
+
+**21. What is your main result?**
+Under mixed privacy (epsilon 1 / 3 / 8 across clients), AutoGM gives every epsilon-1 client weight 0 in every round
+(honest rejection 0.40), while FedGuard gives every honest client its fair share 0.10 (honest rejection 0.004) at the
+same macro-F1 (0.214 vs 0.219, 3 seeds) (F55). Across non-IID levels AutoGM sidelines 27-40% of honest clients,
+FedGuard at most 10% (F56).
+
+**22. Did FedGuard beat AutoGM on accuracy?**
+No - it matched it. At one shared epsilon the two are tied on every attack (paired differences -0.018 to +0.011,
+F54). FedGuard's gain is fairness to honest private clients, not macro-F1. Without DP at alpha 0.1 it did reach 0.209
+vs AutoGM's 0.099 (F56, two seeds).
+
+**23. How did you choose FedGuard's settings without cheating?**
+On the validation split only, with a rule fixed before looking (mean validation macro-F1 over no attack + sign flip,
+the same protocol as AutoGM's lambda), then frozen before any test result was seen (F50).
+
+**24. Your runs were trained on different machines - is that a problem?**
+No: a run is defined by its configuration and seed. The same run on two Kaggle T4s is bit-identical (36 of 36 pairs);
+on a T4 vs our laptop's RTX 3050 it differed by 0.0034 macro-F1, below the seed spread (F53). Each run records its
+machine in `master.csv`.
