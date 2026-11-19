@@ -1,0 +1,11 @@
+<section id="idea">
+<p class="eyebrow">OUR CONTRIBUTION</p>
+<h2>FedGuard: forgive exactly the noise each client declares</h2>
+<p class="formula">r = lr · σ · C · √(T · d) / B</p>
+<div class="cards">
+<div class="card rise"><p class="label">1 · DECLARE</p><p>Each client reports its DP settings (σ, C, B, T, lr) with its update.</p></div>
+<div class="card rise" style="animation-delay:150ms;"><p class="label">2 · PREDICT</p><p>The server computes the noise radius r the client’s update must carry.</p></div>
+<div class="card rise" style="animation-delay:300ms;"><p class="label">3 · JUDGE THE REST</p><p>Trust is set by the part noise cannot explain: √(distance² − r²).</p></div>
+</div>
+<aside>Two facts about noise in high dimension make this work. First, the length of random noise is almost fixed: about sigma times the square root of d. Second, it is almost exactly at 90 degrees to any fixed direction, such as the true update, so Pythagoras applies: distance squared equals true difference squared plus noise squared. That is the quadrature rule. The radius formula: each DP-SGD step adds lr times Gaussian noise of size sigma C over B; T independent steps add up like a random walk, hence the square root of T.</aside>
+</section>

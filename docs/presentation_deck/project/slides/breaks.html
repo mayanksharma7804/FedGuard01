@@ -1,0 +1,11 @@
+<section id="breaks">
+<p class="eyebrow">E4 · E6 · E7 · WHERE IT HOLDS AND WHERE IT BREAKS</p>
+<h2>Fair to honest clients; not a cure for attacks under heavy noise</h2>
+<div class="cards">
+<div class="card"><p class="label">HOLDS</p><h3>Honest clients kept</h3><p>Across non-IID levels and privacy settings: AutoGM sidelines 27-40%, FedGuard ≤ 10%.</p></div>
+<div class="card"><p class="label">HELPS</p><h3>Less weight to attackers</h3><p>Lower than AutoGM at every share (10-40%); best at ε 8: 0.170 vs 0.110 macro-F1.</p></div>
+<div class="card amber"><p class="label">BREAKS</p><h3>Two honest limits</h3><p>40% attackers break every method. Mixed privacy + sign flip: both robust methods fall below FedAvg.</p></div>
+</div>
+<p class="cap" style="margin-top:40px;">Ablation: each refinement changes fairness, not accuracy (F56-F58)</p>
+<aside>E4, honest clients only: AutoGM's honest rejection is 0.27-0.36 even without DP (non-IID spread) and 0.40 under mixed privacy; FedGuard at most 0.10 in all 12 cells, and without DP at alpha 0.1 it doubles AutoGM's macro-F1 (0.209 vs 0.099). E7: attackers' weight lower than AutoGM's at 10, 20, 30 and 40 percent. Breaking points: 40 percent attackers (macro-F1 0.080 for all), and with mixed privacy plus 30 percent sign flip FedGuard scores 0.118 and AutoGM 0.113 against FedAvg's 0.153, mostly one seed where both collapse. E6: removing R4 or the floor raises honest rejection; macro-F1 stays within the seed spread.</aside>
+</section>

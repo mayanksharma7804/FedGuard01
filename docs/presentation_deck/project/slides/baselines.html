@@ -1,0 +1,17 @@
+<section id="baselines">
+<p class="eyebrow">BASELINES · TEST MACRO-F1, 3 SEEDS</p>
+<h2>What federation and privacy cost</h2>
+<div style="display:flex; gap:64px; align-items:flex-start;">
+<table class="tbl" style="width:860px;">
+<tr class="head"><th style="width:62%;">Setting (5 clients)</th><th style="width:38%;">Macro-F1</th></tr>
+<tr><td>Centralised ceiling</td><td>0.597</td></tr>
+<tr><td>FedAvg, IID (α 100)</td><td>0.603</td></tr>
+<tr><td>FedAvg, non-IID (α 0.5 / 0.1)</td><td>0.537 / 0.435</td></tr>
+<tr><td>DP-FedAvg, no DP / ε 8</td><td>0.513 / 0.253</td></tr>
+<tr><td>DP-FedAvg, ε 3 / ε 1</td><td>0.219 / 0.183</td></tr>
+</table>
+<img class="fig" src="/_blob/4022b1e6a7dc2f960f412be701f04ba3" alt="Macro-F1 of DP-FedAvg against epsilon: 0.51 without DP falling to 0.25, 0.22 and 0.18 at epsilon 8, 3 and 1" style="width:740px; height:410px;">
+</div>
+<p class="cap" style="margin-top:40px;">Federation is free with IID data; non-IID data and DP cost mostly the rare attack classes (F22, F29, F38)</p>
+<aside>Federation itself costs nothing with IID clients - FedAvg reaches the centralised ceiling. Non-IID data costs up to 0.16 macro-F1, mostly rare classes held by one small client. Record-level DP roughly halves macro-F1 even at epsilon 8: with 1-19k rows per client and 40k parameters the noise is about ten times the clean update, so rare classes drown first. Attack-versus-benign detection mostly survives (binary F1 0.80-0.85), which is why we report both.</aside>
+</section>

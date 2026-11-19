@@ -1,0 +1,19 @@
+{
+  "v": 5,
+  "createdOnFiles": {"v": 1, "at": "2026-11-19T11:30:00Z"},
+  "lists": "css",
+  "format": {"v": 1, "shared": ["project/deck.css"]},
+  "title": "FedGuard – Final Presentation",
+  "order": ["cover", "story", "fl", "threats", "conflict", "idea", "architecture", "data", "calibration", "baselines", "statement", "silenced", "attacks", "breaks", "demo", "limits"],
+  "sections": {
+    "s1": {"description": "The problem: federated intrusion detection needs privacy and robustness, and the two defences fight.", "start": "cover"},
+    "s2": {"description": "The method: FedGuard forgives exactly the noise each client declares.", "start": "idea"},
+    "s3": {"description": "The evidence: data, calibration, baselines, and FedGuard against AutoGM.", "start": "data"},
+    "s4": {"description": "Live demo, limitations and next steps.", "start": "demo"}
+  },
+  "faces": {
+    "space-grotesk": {"family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap"},
+    "inter": {"family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap"}
+  },
+  "designSystems": []
+}

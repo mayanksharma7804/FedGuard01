@@ -1,0 +1,11 @@
+<section id="limits" class="dark">
+<p class="eyebrow">LIMITATIONS AND NEXT STEPS</p>
+<h2>What we did not solve</h2>
+<div class="cards" style="margin-bottom:64px;">
+<div class="card navy" style="background:#1E2E52;"><p class="label" style="color:#7FD6CB;">LIMITS</p><p style="color:#C9D6E3;">Honest declarations are assumed · DP is costly with small clients · one dataset · results from two GPU types (differ by ~0.003)</p></div>
+<div class="card navy" style="background:#1E2E52;"><p class="label" style="color:#7FD6CB;">NEXT</p><p style="color:#C9D6E3;">Verify declared noise · client-level DP or larger clients · second dataset (CICIoT2023) · real multi-organisation deployment</p></div>
+</div>
+<p style="font-family:'Space Grotesk', Georgia, sans-serif; font-size:64px; font-weight:600; color:#F7F6F2;">Thank you · Questions?</p>
+<p class="foot">Code, configs and every number: github.com/mayanksharma7804/FedGuard01</p>
+<aside>Be the first to name the weaknesses. An attacker who declares more noise than it adds is forgiven more; a partial check (too_clean) exists as future work. DP roughly halves macro-F1 with clients of 1-19k rows. Only NF-UNSW-NB15-v2. Runs were trained on the team laptop and Kaggle T4 GPUs; identical on the same GPU type, about 0.003 apart across types (F53). Every number in this deck traces to results/master.csv.</aside>
+</section>

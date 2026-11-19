@@ -1,0 +1,15 @@
+<section id="attacks" class="alt">
+<p class="eyebrow">UNDER ATTACK · ONE SHARED ε = 3 · 30% ATTACKERS · 3 SEEDS</p>
+<h2>Against attackers, FedGuard ties AutoGM</h2>
+<table class="tbl" style="margin-bottom:40px;">
+<tr class="head"><th style="width:28%;">Test macro-F1</th><th style="width:18%;">None</th><th style="width:18%;">Label flip</th><th style="width:18%;">Sign flip</th><th style="width:18%;">Gaussian</th></tr>
+<tr><td>FedAvg</td><td>0.218</td><td>0.173</td><td>0.163</td><td>0.145</td></tr>
+<tr><td>AutoGM</td><td>0.210</td><td>0.123</td><td>0.152</td><td>0.206</td></tr>
+<tr class="hi"><td>FedGuard</td><td>0.203</td><td>0.126</td><td>0.150</td><td>0.212</td></tr>
+</table>
+<div class="cards">
+<div class="card"><p class="label">STOPPED</p><p>Gaussian attackers get weight 0 from both robust methods.</p></div>
+<div class="card amber"><p class="label">NOT STOPPED</p><p>Sign and label flip keep ~30% of the weight: hidden inside noise of length ~13.</p></div>
+</div>
+<aside>Paired per-seed differences between FedGuard and AutoGM are -0.018 to +0.011: a tie (F54). With one shared epsilon every client declares the same noise radius, so FedGuard has nothing extra to work with. A sign-flipped update moves only about 1 to 1.5 further than an honest one, while each update carries noise of length about 13 - no distance-based rule can see it at epsilon 3. Label flip is invisible to every distance-based method: the attacker trains normally on wrong labels. Be the first to say this in the viva.</aside>
+</section>

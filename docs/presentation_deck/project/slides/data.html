@@ -1,0 +1,13 @@
+<section id="data">
+<p class="eyebrow">DATA · NF-UNSW-NB15-v2</p>
+<h2>Honest data first: no leakage</h2>
+<div style="display:flex; gap:64px; align-items:center;">
+<div style="display:flex; flex-direction:column; gap:32px; width:600px;">
+<div><p class="big amber">95.5%</p><p>of 2.39 M flows are duplicates once identifiers are dropped</p></div>
+<div><p class="big">104,022</p><p>unique flows · 38 features · 10 classes</p></div>
+</div>
+<img class="fig" src="/_blob/8e1e5cf809dabab8055ac8b450e2357f" alt="Bar chart: share of rows that are duplicates per class after dropping identifiers; Benign keeps only 3% of its rows" style="width:1000px; height:450px;">
+</div>
+<p class="cap" style="margin-top:32px;">Dropped IPs, ports and the hidden identifier DNS_QUERY_ID · de-duplicated before the split · scaler fitted on train only · a test caught a float32 leak (F07-F11)</p>
+<aside>Leakage is the first thing examiners check. Removing identifier columns turned 95.5% of the dataset into exact duplicates - without de-duplication the same flow sits in train and test and accuracy is fake. DNS_QUERY_ID is a random transaction number that hid 131,000 duplicate benign flows. All attacks came from 4 of 40 source IPs, so IP columns would let a model memorise hosts. Our scores are therefore lower than published 91-93% figures, which keep the duplicates (F13) - but honest.</aside>
+</section>

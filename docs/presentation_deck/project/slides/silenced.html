@@ -1,0 +1,16 @@
+<section id="silenced">
+<p class="eyebrow">MIXED PRIVACY · ε 1 / 3 / 8 ACROSS 10 CLIENTS · 3 SEEDS</p>
+<h2>Who does the server trust?</h2>
+<div style="display:flex; gap:32px;">
+<div style="display:flex; flex-direction:column; gap:16px; width:816px;">
+<p style="font-size:32px; color:var(--amber-dark); font-weight:600;">AutoGM: every ε-1 client gets 0 · 40% of honest clients sidelined</p>
+<img class="fig" src="/_blob/1b360d52d8bbdb2c74662c2e3281b874" alt="AutoGM trust weights per round: the four epsilon-1 clients stay at weight 0 in all 40 rounds, the epsilon-8 clients get about 0.24 each" style="width:816px; height:410px;">
+</div>
+<div style="display:flex; flex-direction:column; gap:16px; width:816px;">
+<p style="font-size:32px; color:var(--teal-dark); font-weight:600;">FedGuard: every honest client gets its fair 0.10 · 0.4% sidelined</p>
+<img class="fig" src="/_blob/8288444abe63a2fe6e25f3924c2aafea" alt="FedGuard trust weights per round: all ten clients, including the four epsilon-1 clients, at the fair share 0.10 from round 2" style="width:816px; height:410px;">
+</div>
+</div>
+<p class="lead" style="margin-top:40px;">Same accuracy: macro-F1 0.219 (AutoGM) vs 0.214 (FedGuard)</p>
+<aside>Clients 0, 3, 6 and 9 chose epsilon 1 - the strongest privacy. AutoGM, which ignores declared noise, gives each of them weight 0 in every round of every seed, and over-trusts the low-noise epsilon-8 clients at 0.24 each. FedGuard gives every honest client almost exactly 1/K = 0.10, whatever its privacy level. Honest rejection rate: AutoGM 0.400, FedGuard 0.004; macro-F1 0.219 vs 0.214, per seed within noise (F55). Across non-IID levels and privacy settings AutoGM sidelines 27-40% of honest clients, FedGuard at most 10% (F56).</aside>
+</section>

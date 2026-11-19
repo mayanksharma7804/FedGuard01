@@ -1,0 +1,12 @@
+<section id="demo" class="alt">
+<p class="eyebrow">LIVE DEMO · FLOWER, 5 ORGANISATIONS</p>
+<h2>Watch the trust weights live</h2>
+<p class="lead" style="margin-bottom:48px;">Client 0 is an attacker. Client 1 is a hospital with the strongest privacy (ε 1).</p>
+<table class="tbl" style="margin-bottom:40px;">
+<tr class="head"><th style="width:34%;">10 rounds</th><th style="width:33%;">Attacker’s weight</th><th style="width:33%;">Hospital rejected</th></tr>
+<tr><td>AutoGM</td><td>0 in every round</td><td>10 of 10 rounds</td></tr>
+<tr class="hi"><td>FedGuard</td><td>0 in every round</td><td>5 of 10 rounds</td></tr>
+</table>
+<p class="cap">One laptop, five Flower SuperNodes, our FedGuard strategy · backup: replay of a recorded run (F52)</p>
+<aside>Run scripts\windows\demo_flower.ps1 -Aggregator autogm, then -Aggregator fedguard; the dashboard shows each client's weight per round, the attacker red and dashed, the hospital blue. Say honestly: in this small 5-client, 1-epoch demo FedGuard protects the hospital in half of the rounds, AutoGM in none; the full experiments show the complete effect. If the live run fails: python scripts\demo_dashboard.py --dir results\demo_fedguard replays a finished run.</aside>
+</section>

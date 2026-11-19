@@ -1,0 +1,13 @@
+<section id="fl" class="alt">
+<p class="eyebrow">THE STANDARD ANSWER</p>
+<h2>Federated learning: share the lesson, not the data</h2>
+<div class="cards" style="align-items:center; margin-bottom:64px;">
+<div class="card navy"><p class="label">STEP 1</p><h3>Server sends the global model</h3><p>The same detector to every organisation.</p></div>
+<x-shape kind="arrow-right" class="arrow"></x-shape>
+<div class="card navy"><p class="label">STEP 2</p><h3>Each trains on its own logs</h3><p>Raw data never leaves the building.</p></div>
+<x-shape kind="arrow-right" class="arrow"></x-shape>
+<div class="card navy"><p class="label">STEP 3</p><h3>Server combines the updates</h3><p>FedAvg: a weighted average. Then repeat.</p></div>
+</div>
+<p class="lead">Each round sends only an update - the change to the model weights - never a single log line.</p>
+<aside>One round: the server sends the global model, every organisation trains it locally for a few epochs, sends back only the weight change, and the server averages these changes. After 30-50 rounds the model is good for everyone. In our project: 5 or 10 organisations, a CNN-LSTM detector with 40,266 parameters, 5 local epochs per round.</aside>
+</section>

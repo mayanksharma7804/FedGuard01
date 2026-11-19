@@ -1,0 +1,11 @@
+<section id="architecture" class="alt">
+<p class="eyebrow">ARCHITECTURE</p>
+<h2>Three tiers, one new aggregation rule</h2>
+<div class="cards" style="margin-bottom:48px;">
+<div class="card navy"><p class="label">CLIENT TIER</p><h3>Each organisation</h3><p>Same CNN-LSTM, its own non-IID data, DP-SGD (Opacus). Sends update + declared settings.</p></div>
+<div class="card" style="flex:1.4;"><p class="label">AGGREGATION TIER · FEDGUARD</p><h3>Noise-aware AutoGM</h3><p>R1 centre’s noise counted · R2 quadrature residual · R3 robust allowance (median + 2 MAD) · R4 noise-length tolerance · floor on the allowance</p></div>
+<div class="card navy"><p class="label">DISTRIBUTION TIER</p><h3>New global model</h3><p>Sent back to every organisation; the round repeats.</p></div>
+</div>
+<p class="cap">Pure NumPy aggregator: the same code runs in our engine and in Flower (results agree to 6.9e-17).</p>
+<aside>The aggregator is the contribution. R1: the centre is built from noisy updates too, so its noise is counted. R2: the quadrature residual. R3: the allowance for normal non-IID spread is computed from the cleaned residuals, not raw distances. R4: forgive the natural wobble of a large noise length. The floor stops the allowance collapsing to zero when most residuals are hidden by noise (F48). These settings were chosen on the validation split before any test result (F50).</aside>
+</section>

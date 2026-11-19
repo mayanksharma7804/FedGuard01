@@ -1,0 +1,7 @@
+<section id="calibration" class="alt">
+<p class="eyebrow">FOUNDATION · EXPERIMENT E0</p>
+<h2>Can the server predict the noise? Yes, to about 1%</h2>
+<img class="fig" src="/_blob/6da089bd16debaa5556d66e46e223c76" alt="E0 calibration: measured noise length against the predicted radius for 150 client pairs, all on the diagonal; ratio 1.000 to 1.005" style="width:1450px; height:580px; align-self:center;">
+<p class="cap">Measured / predicted = 1.000-1.005 over 150 pairs · noise at 90° to the update (cos ≈ −0.005) · E0 first caught a 5-20% error in our formula (F34, F35)</p>
+<aside>E0 trains the same client twice from the same model with the same batches and dropout - once with noise multiplier sigma, once with zero - and compares the measured noise with the declared radius. It matched to within about 1 percent for every sigma and step count, and the noise is orthogonal to the signal, which justifies the quadrature rule. Importantly, E0 was not a formality: its first run showed our radius was 5-20% too small, because Opacus samples with rate 1 over ceil(n/B) and divides by an integer batch size. Fixed before any baseline was run.</aside>
+</section>

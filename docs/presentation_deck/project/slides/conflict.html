@@ -1,0 +1,13 @@
+<section id="conflict" class="alt">
+<p class="eyebrow">THE GAP</p>
+<h2>The conflict: honest privacy noise looks like an attack</h2>
+<p class="lead" style="margin-bottom:48px;">Tuning AutoGM on our data (ε = 3, 10 clients) - no setting works:</p>
+<table class="tbl">
+<tr class="head"><th style="width:34%;">AutoGM λ scale</th><th style="width:33%;">Honest clients rejected</th><th style="width:33%;">Attackers’ weight (30% sign flip)</th></tr>
+<tr><td>0.5 – 1 (strict)</td><td>90% (follows one client)</td><td>0%</td></tr>
+<tr><td>2</td><td>10%</td><td>37%</td></tr>
+<tr><td>4 (best, chosen)</td><td>0%</td><td>32% - above their 30% share</td></tr>
+</table>
+<p class="cap" style="margin-top:32px;">Validation split, seed 42 (Findings F39). Strict: honest private clients are thrown out. Lenient: attackers get in.</p>
+<aside>This is Gap 1 of our paper, measured on real intrusion-detection training. DP noise pushes every honest update about 13 units away from the centre, while a sign-flip attack adds only about 1 to 1.5. A strict AutoGM collapses onto a single client - whose full noise then becomes the global update; a lenient one gives the attackers about a third of the weight. We chose lambda scale 4 as AutoGM at its best, so that every comparison is fair.</aside>
+</section>

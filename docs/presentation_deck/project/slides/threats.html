@@ -1,0 +1,10 @@
+<section id="threats">
+<p class="eyebrow">TWO WELL-KNOWN THREATS</p>
+<h2>Updates leak, and members can lie</h2>
+<div class="cards">
+<div class="card"><p class="label">LEAKS → DIFFERENTIAL PRIVACY</p><h3>Updates can be inverted</h3><p>Training records can be rebuilt from an update. DP-SGD clips each record’s influence and adds calibrated noise; ε measures the privacy.</p></div>
+<div class="card amber"><p class="label">LIES → ROBUST AGGREGATION</p><h3>Updates can be poisoned</h3><p>A compromised member can teach the model to ignore attacks. AutoGM trusts updates close to the crowd and down-weights the rest.</p></div>
+</div>
+<p class="cap" style="margin-top:48px;">Our review of 25 intrusion-detection studies: none uses both defences together.</p>
+<aside>Leaks: "Deep Leakage from Gradients" showed records can be reconstructed from updates; the fix is differential privacy - smaller epsilon means more noise and more privacy. Lies: Byzantine clients send poisoned updates; the fix is a robust aggregator such as AutoGM, an auto-weighted geometric median. Our scoping review found that no IDS framework in the 25 studies uses both.</aside>
+</section>
