@@ -1,0 +1,13 @@
+variant,attack,test_macro_f1_mean,hrr_mean_mean,attacker_share_mean_mean,test_macro_f1_std,hrr_mean_std,attacker_share_mean_std,n
+R1 (use_r_eff) = False,none,0.2026,0.0,0.0,0.0128,0.0,0.0,3
+R1 (use_r_eff) = False,sign_flip,0.147,0.0,0.3,0.0022,0.0,0.0,3
+R2 mode = linear,none,0.2031,0.0017,0.0,0.0126,0.0029,0.0,3
+R2 mode = linear,sign_flip,0.1482,0.006,0.2877,0.0015,0.0055,0.0086,3
+R4 (noise_tol_z) = None,none,0.2012,0.0333,0.0,0.0128,0.0014,0.0,3
+R4 (noise_tol_z) = None,sign_flip,0.1451,0.019,0.2892,0.0062,0.0074,0.0032,3
+frozen,none,0.2033,0.0017,0.0,0.0126,0.0029,0.0,3
+frozen,sign_flip,0.1502,0.0071,0.2951,0.001,0.0095,0.005,3
+lambda_scale = 1.0,none,0.2031,0.0017,0.0,0.0126,0.0029,0.0,3
+lambda_scale = 1.0,sign_flip,0.1472,0.006,0.2923,0.0041,0.0055,0.0084,3
+s floor = None,none,0.1958,0.0133,0.0,0.0195,0.0058,0.0,3
+s floor = None,sign_flip,0.1438,0.0324,0.2779,0.0041,0.0246,0.0076,3

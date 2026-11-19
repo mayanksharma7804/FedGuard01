@@ -1,0 +1,7 @@
+method,attack,test_macro_f1_mean,test_binary_f1_mean,hrr_mean_mean,attacker_share_mean_mean,test_macro_f1_std,test_binary_f1_std,hrr_mean_std,attacker_share_mean_std,n
+AutoGM,none,0.2188,0.7319,0.4,0.0,0.0334,0.1393,0.0,0.0,3
+AutoGM,sign_flip,0.1129,0.4074,0.4345,0.3947,0.0373,0.3504,0.0103,0.0778,3
+FedAvg,none,0.1895,0.7596,0.3333,0.0,0.0115,0.0192,0.0577,0.0,3
+FedAvg,sign_flip,0.1525,0.765,0.2857,0.2084,0.0017,0.0037,0.0,0.0129,3
+FedGuard,none,0.2135,0.738,0.0042,0.0,0.0377,0.1334,0.0052,0.0,3
+FedGuard,sign_flip,0.1178,0.3966,0.005,0.276,0.033,0.3485,0.0045,0.0252,3

@@ -1,0 +1,13 @@
+attack,seed,fedguard_minus_autogm
+gaussian,42,0.0105
+gaussian,43,0.0010
+gaussian,44,0.0068
+label_flip,42,0.0032
+label_flip,43,0.0058
+label_flip,44,0.0000
+none,42,-0.0008
+none,43,-0.0180
+none,44,-0.0015
+sign_flip,42,-0.0005
+sign_flip,43,-0.0009
+sign_flip,44,-0.0033
