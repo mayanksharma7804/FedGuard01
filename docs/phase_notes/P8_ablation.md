@@ -1,36 +1,28 @@
-# Phase 8 — Ablation Study (E5)
+# Phase 8 note - Ablation (E6), stress tests (E7) and the experiment campaign
 
-> **SUPERSEDED (17 Nov 2026) - do not quote these numbers.** This note was written from the 20-round /
-> patience-5 runs of 21-31 Oct, which stopped many DP runs during the warm-up (Findings F46). It will be
-> rewritten from the valid 40-round runs. Corrections already known: this was a single-seed ablation (plan E6), not the plan's E5 main attack table.
+**Dates:** 18-19 Nov 2026 | **Lead:** R5 (Experiments + writing) | **Objectives:** O4, O5
+
+> Replaces the 31 Oct note (a single-seed, 20-round ablation, F46).
 
 ## What we did
-30-run ablation over α ∈ {0.1, 0.5, 100} × 5 aggregators × 2 attacks (none, sign_flip), seed=42, DP ε=3, K=10.
+- E6: one change at a time from the frozen FedGuard - R2 mode, R4, s floor, lambda_scale, R1 - 3 seeds, no attack
+  and 30% sign flip (`configs/sweeps/e6_ablation_*.yaml`).
+- E7: attacker share 10-40% (sign flip, eps 3) and epsilon 8 / 1, FedGuard vs AutoGM vs FedAvg, seed 42.
+- The 144-run queue was finished on the team laptop plus six Kaggle accounts (T4 GPUs): explicit run lists per
+  machine, zips imported with checks (`scripts/import_runs.py`); docs/FedGuard_Faster_Training_Guide.pdf.
 
-## Aggregators compared
-1. FedGuard-quadrature+R4 (full system: quadrature residual + noise_tol_z=3.0)
-2. FedGuard-linear+R4 (linear residual + noise_tol_z=3.0)
-3. FedGuard-quadrature (no R4: quadrature residual only, no noise_tol_z)
-4. AutoGM (lam_scale=4.0)
-5. FedAvg (baseline)
+## Numbers we got
+| Result | Value | Finding |
+|---|---|---|
+| E6 | macro-F1 0.196-0.203 (none), 0.144-0.150 (sign flip) for every variant; no R4: HRR 0.033; no s floor: 0.013-0.032; no R1: equal weights | F57 |
+| E7 attacker share | attackers' weight at 10/20/30/40%: AutoGM 0.115/0.232/0.325/0.406, FedGuard 0.095/0.174/0.289/0.364; all methods break at 40% | F58 |
+| E7 epsilon | eps 8 + 30% sign flip: FedGuard 0.170 vs AutoGM 0.110 (FedAvg 0.173) | F58 |
+| Cross-machine | same run on two T4s bit-identical (36 of 36 pairs: 20 + 16); T4 vs RTX 3050: 0.0034 macro-F1 | F53 |
 
-## Key findings
+## What went wrong / surprises
+- A thermal-guard process died with a Claude session and stranded training for ~40 min (F51); the guard now lives
+  inside the training process, and WMI-launched jobs opt out of Windows power throttling.
+- One Kaggle share was run twice by mistake; the duplicate became a second determinism check (F53).
 
-**E5 — Mode ablation (quadrature vs linear)**:
-- At α=0.5 and α=100, both modes perform similarly on clean data and sign_flip.
-- At α=0.1 (extreme non-IID), all methods degrade severely; differences are within noise.
-
-**R4 ablation (noise_tol_z effect)**:
-- Removing R4 (FedGuard-quadrature vs FedGuard-quadrature+R4): on clean data nearly identical; on sign_flip at α=0.5, R4 provides modest protection. At α=0.1, R4 at z=3.0 appears slightly over-aggressive under extreme non-IID + DP noise.
-
-**Alpha sensitivity**:
-- α=0.1: all methods near-collapse at ε=3. Differences not meaningful.
-- α=0.5: moderate heterogeneity; FedGuard provides clearest gains on gaussian attack (Phase 7).
-- α=100: near-IID; FedAvg competitive with any robust aggregator.
-
-## Limitation
-Single seed (42) and one epsilon value (ε=3) limits statistical conclusions. The mixed-ε sweep (Phase 9) directly tests the core FedGuard hypothesis of heterogeneous privacy handling.
-
-## Plots
-- `results/figures/e5_ablation_none.png`
-- `results/figures/e5_ablation_sign_flip.png`
+## Decision
+Breaking points reported: 40% attackers, and epsilon <= 3 for sign flip. Plots: `e6_ablation.png`, `e7_stress.png`.
